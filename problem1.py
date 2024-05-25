@@ -10,10 +10,9 @@ Use the len() function to find the length of a string entered by the user and pr
 
 print("\nProblem 1\n")
 
-num1 = float(input('Enter a number: '))
+org_num = input('Enter a number: ')
+round_num = round(float(org_num), 2)
 
-print("Orginal Number:", num1)
-print("Rounded Number:", round(num1, 2))
-
-msg = input("\nEnter a msg: ")
-print("Msg length:", len(msg))
+print("Orginal Number:", org_num)
+print("Rounded Number:", round_num)
+print("Num length:", len(org_num))
