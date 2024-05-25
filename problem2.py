@@ -16,8 +16,11 @@ sentence = input('Enter a sentence: ')
 
 upper_case = sentence.upper()
 lower_case = sentence.lower() 
-title_case = sentence.title() 
+third_case = sentence.split(' ')
+third_case[0] = third_case[0].upper()
+third_case = ' '.join(sentence)
+
 print("\nOrginal Sentence:", sentence)
 print("\nUppercase:", upper_case)
 print("Lowercase:", lower_case)
-print("Titlecase:", title_case)
+print("Titlecase:", third_case)
