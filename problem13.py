@@ -6,8 +6,27 @@
 nums = []
 
 for i in range(3):
-    nums.append(int(input(f"Enter number {i + 1}: ")))
-    
+    nums.append(int(input(f"Enter number {i + 1}: "))) 
+        
 nums.sort()
 
-print(nums[1])
+second_largest = nums[0]
+
+for i in range(0, 2):
+    if (nums[i] < nums[i + 1]): second_largest = nums[i]
+
+print(second_largest)
+
+"""
+    1
+    Input: 5 10 10
+    Output: 10
+     
+    2
+    Input: 5 10 15
+    Output: 10
+    
+    3
+    Input: 10 10 10
+    Output: 10   
+"""
