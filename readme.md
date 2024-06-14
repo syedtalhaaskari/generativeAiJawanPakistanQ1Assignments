@@ -4,5 +4,3 @@
 ### Class 5 Assignments
 
 ### Switch branch to view other assignments
-
-Not Completed 17
