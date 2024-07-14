@@ -5,26 +5,30 @@
 # bool(tz_aware_dt.dst()) == True # dst activated
 # bool(tz_aware_dt.dst()) == False # dst not activated
 
-string_date = "2022-01-01 00:00:00"
-
 from datetime import datetime, timedelta
 import pytz
 
-def calculate_dst_start(timezone_name, date_str):
-    tz = pytz.timezone(timezone_name)
+def calc_dst_start(year: datetime, tz):
+    tz = pytz.timezone(tz)
+    for i in range(1,13):
+        us_time = datetime(year=year, month=i, day=1)
+        us_time = tz.localize(us_time)
+        if us_time.dst().total_seconds() > 0:
+            while True:
+                us_time = us_time - timedelta(days=1)
+                us_time = datetime(year=year, month=us_time.month, day=us_time.day)
+                us_time = tz.localize(us_time)
 
-    date_obj = datetime.fromisoformat(date_str)
-
-    # convert to timezone aware datetime
-
-    tz_aware_dt = tz.localize(date_obj)
-
-    return 'not activated' if tz_aware_dt.dst() else 'activated'
-
+                if us_time.dst().total_seconds() == 0:
+                    while True:
+                        us_time = us_time + timedelta(hours=1)
+                        us_time = datetime(year=year, month=us_time.month, day=us_time.day, hour=us_time.hour)
+                        us_time = tz.localize(us_time)
+                        if us_time.dst().total_seconds() > 0:
+                            return us_time
+                        
+year = 2022
 tz = "US/Pacific"
+dst_start = calc_dst_start(year, tz)
 
-date_str = "2023-01-01 00:00:00"
-
-isActivated = calculate_dst_start(tz, date_str)
-
-print(f"Day light saving in time zone {tz} on date {date_str} is {isActivated}")
+print(f"Daylight Saving Time for {tz} for the year {year} will start at {dst_start}")
