@@ -1,56 +1,94 @@
-"""
-Problem 1:
+Part 1: Introduction to the Base Class
+Understanding BankAccount:
 
-create class Item
-add instance properties
-  name, price, quantity
-create method calcualte_total_price
-create method apply_discount
-create method all_items
+Task: Create a base class called BankAccount with the following attributes and methods:
 
-all items have 20% discount by default
+Attributes:
+balance: The initial amount of money in the account.
+name: The name of the account.
 
-# use these items and store it in items.csv
-"Phone", 100, 1
-"Laptop", 1000, 3
-"Cable", 10, 5
-"Mouse", 50, 5
-"Keyboard", 75, 5
-
-# read items.csv and create objects for each item
-# I should be able to print all the items
+Methods:
+get_balance: Print the current balance.
+deposit: Add a specified amount to the balance.
+withdraw: Subtract a specified amount from the balance if sufficient funds are available.
+transfer: Transfer a specified amount to another account.
 
 
-# Problem 2:
-# extend the above application
-restrict updating the price directly i.e item.price = 100
+
+Part 2: Creating Specialized Accounts
+Interest Rewards Account (InterestRewardsAcct):
+
+Task: add below functionality
+1, This account rewards users by adding a 5% bonus to any amount deposited.
 
 
-Problem 3:
 
-# extend the above application
-# There are extra attributes in laptop i.e gpu, port_count and also it has 30% discount
 
-# application folder structure
-1. items.py
-2. laptop.py
-3. data/items.csv
+Part 3: Creating Specialized Accounts
+Savings Account (SavingsAcct):
+
+Task: add below functionality
+1. This account rewards users by adding a 5% bonus to any amount deposited.
+2. This account charges a $5 fee for every withdrawal.
+
 
 # use this link if you are unable to create the assignment even after taking help on the group
 # use this link only on the next saturday
-Ref: https://www.youtube.com/watch?v=Ej_02ICOIgs
+Ref: https://www.youtube.com/watch?v=PMFd95RgIwE
+###############################################################################
+
+Example Test Code:
+
+# PART 1
+
+Dave = BankAccount(1000, "Dave")
+Sara = BankAccount(2000, "Sara")
+
+Dave.get_balance() # should display $1000
+Sara.get_balance() # should display $2000
+
+Sara.deposit(500) # add 500 in Sara's account
+Sara.get_balance() # should display $2500
+
+Dave.withdraw(10000) # it should raise an error saying "Sorry, account 'Dave' only has a balance of $1000"
+Dave.withdraw(10)   # should subtract $10 from Dave's account
+Dave.get_balance()  # should display $990
+
+Dave.transfer(10000, Sara) # it should raise an error saying "Sorry, account 'Dave' only has a balance of $990"
+Dave.transfer(100, Sara)   # should add $100 to Sara's account and remove $100 from Dave's account
+
+Dave.get_balance() # should display $890
+Sara.get_balance() # should display $2600
 
 
+# PART 2
+# Every InterestRewardsAcct user always receive 5% reward on adding more money
+Jim = InterestRewardsAcct(1000, "Jim")
 
-Problem 4:
-Design a hotel room managment system
+Jim.get_balance()
 
-Requirement:
-1. I should be able to add hotel info i.e name and address
-2. I should be able to add new room info i.e name, num_of_beds, fare_per_day
-3. I should be able to book a room for a user/person/account for today and future dates (ignore timezone)
-4. I should be able to view the few stats i.e total rooms, total room occupied today, total rooms available today
-5. I should be able to check if room is available on future date
+Jim.deposit(100) # it should add $100 + Reward amount of extra 5% i.e (%100 * 1.05)
 
-Design a good model. Its a simple requirment there will no need to use inheritance
-"""
+Jim.get_balance() # it should display $1105
+
+Jim.transfer(100, Dave) # should add $100 to Dave account and remove $100 from Jim's account
+
+Jim.get_balance() # it should display $1005.00
+
+
+# PART 3
+# Every SavingsAcct user always receive 5% reward on adding more money
+# Every SavingsAcct user always get panelty of $5 on reducing the money
+Blaze = SavingsAcct(1000, "Blaze")
+
+Blaze.get_balance() # it should display $1000
+
+Blaze.deposit(100)   # it should add $100 + Reward amount of extra 5% i.e (%100 * 1.05)
+Blaze.get_balance()  # should display $1105 (instead of 1100)
+
+Blaze.withdraw(10)   # should subtract $15 (instead of $10) from Blaze's account
+Blaze.get_balance()  # should display $1090 (instead of 1095)
+
+Blaze.transfer(10000, Sara) # it should raise an error saying "Sorry, account 'Blaze' only has a balance of $1090"
+Blaze.transfer(1000, Sara) # it should add $1000 to Sara's account and subtract $1005 from Blaze account (instead of $1000)
+Blaze.get_balance()  # should display $85
