@@ -21,56 +21,18 @@ all items have 20% discount by default
 # I should be able to print all the items
 """
 
-class Item:
-    def __init__(self, name: str, price: float, quantity: int):
-        self.name = name
-        self.price = price
-        self.quantity = quantity
-        self.total_price = 0
-    
-    def calculate_total_price(self):
-        discount = self.apply_discount()
-        self.total_price = (float(self.price) * float(self.quantity)) - discount
-        return self.total_price
-    
-    def apply_discount(self, discount_percentage=0.2):
-        perc = (1.0 - discount_percentage)
-        return float(self.price) * perc
-    
-    @staticmethod
-    def all_items(filename: str):
-        items = []
-        with open(filename, 'r') as file:
-            print("Name : Price : Quantity")
-            for line in file:
-                name, price, quantity = [item.strip() for item in line.strip().split(',')]
-                name = name.replace("\"", "")
-                separator()
-                print("\nAll Items:")
-                print(f"{name} : {price} : {quantity}")
-                items.append([name, price, quantity])
-            separator()
-            print()
-            file.close()
-        
-        return items
-    
-def separator():
-    print("\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n")
-    
-items = Item.all_items('items.csv')
-items_obj = [None] * len(items)
+from item import Item
 
-for (i, (name, price, quantity)) in enumerate(items):
-    separator()
-    
-    items_obj[i] = Item(name, price, quantity)
-    print(f"Name: {name}")
-    print(f"Price: {price}")
-    print(f"Quantity: {quantity}")
-    print(f"Discount/Item: {items_obj[i].apply_discount()}")
-    print(f"Total Price: {items_obj[i].calculate_total_price()}")
-    
-    separator()
-    
-    
+Item.instanciate_from_csv()
+
+items = Item.all
+
+for (i, item_obj) in enumerate(items):
+    print('--------------------------------')
+    print(f"Name: {item_obj.name}")
+    print(f"Price: {item_obj.price}")
+    print(f"Quantity: {item_obj.quantity}")
+    item_obj.apply_discount()
+    print(f"Price after discount: {item_obj.price}")
+    print(f"Total Price: {item_obj.calculate_total_price()}")
+    print('--------------------------------')
