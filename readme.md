@@ -1,7 +1,7 @@
 # Assignments Repo for Generative AI Jawan Pakistan Q1
 ## Syed Talha Askari
 
-### Class 12 Assignments
+### Class 13 Assignments
 
 ### Switch branch to view assignments
 
