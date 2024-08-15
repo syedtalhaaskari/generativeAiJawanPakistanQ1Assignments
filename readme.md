@@ -1,7 +1,7 @@
 # Assignments Repo for Generative AI Jawan Pakistan Q1
 ## Syed Talha Askari
 
-### Class 14 Assignments
+### Tic Tac Toe Assignment
 
 ### Switch branch to view assignments
 
