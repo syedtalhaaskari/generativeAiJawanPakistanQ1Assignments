@@ -1,82 +1,41 @@
-# https://github.com/mdanish0320/teaching-class/blob/master/JP-BE-PY-batch-1/mysql-class/sample-databases/hr_db/db.sql
+# MySQL Sub Query
 
-# Group BY
+Assignment 1: Employees in Specific Departments
+Task: Retrieve the EMPLOYEE_ID, FIRST_NAME, and LAST_NAME of employees who work in departments located in cities that start with the letter 'S'.
+Hint: Use a subquery after the WHERE clause to find DEPARTMENT_IDs based on LOCATION_IDs from the locations table.
 
-# Write a query to get the number of employees who has the same job title.
-# list down the lowest salary of the employee of every manager and also display the manager_id.
-# list down the total salaries of every deparment # NOTE: salary should be in ascending order
-# list down the average salaries of every department exluding IT Deparment
-# fetch the top 3 department who is taking the highest salary among all other deparment
+Assignment 2: High Salary Jobs
+Task: List the JOB_ID and JOB_TITLE for jobs that have a minimum salary greater than the average salary across all jobs.
+Hint: Use a subquery after the WHERE clause to calculate the average salary.
 
-ignore this
-# list down all the department (job_id) whose avg salary is more than overall avg salary of the whole company
+Assignment 3: Employee and Their Manager's Details
+Task: Display EMPLOYEE_ID, FIRST_NAME, LAST_NAME, and MANAGER_ID of employees along with the FIRST_NAME and LAST_NAME of their managers.
+Hint: Use a subquery after the FROM clause to join the employees table to itself to get the manager's details.
 
-# Write a query to get employee ID, last name, and date of first department (where he was working in, table name "job_history") of the employees.
-# find the department that contains more than 10 employees
-# Write a query to get the years in which more than 10 employees joined.
+Assignment 4: Departments with Employees Hired After a Specific Date
+Task: Retrieve DEPARTMENT_ID and DEPARTMENT_NAME for departments that have employees hired after '01-JAN-2010'.
+Hint: Use a subquery after the WHERE clause to find departments based on hire dates in the employees table.
 
-Find the number of employees in each department.
+Assignment 5: Locations with Multiple Departments
+Task: List LOCATION_ID and CITY for locations that have more than one department.
+Hint: Use a subquery after the FROM clause to group and count departments per location.
 
-Calculate the average salary for each job title.
+Assignment 6: Employees with Maximum Salary in Their Department
+Task: Retrieve the EMPLOYEE_ID, FIRST_NAME, LAST_NAME, and SALARY of employees who earn the maximum salary in their respective departments.
+Hint: Use a subquery after the WHERE clause to find the maximum salary per department.
 
-List the total salary expenditure for each department.
+Assignment 7: Jobs with Employees in More Than One Department
+Task: List JOB_ID and JOB_TITLE for jobs where employees have worked in more than one department (including past jobs from the job_history table).
+Hint: Use a subquery after the WHERE clause to check the number of distinct departments per employee from the job_history table.
 
-Find the maximum salary in each department.
+Assignment 8: Departments Without Managers
+Task: Retrieve DEPARTMENT_ID and DEPARTMENT_NAME for departments that do not have a manager assigned.
+Hint: Use a subquery after the WHERE clause to identify departments where MANAGER_ID is NULL.
 
-Count the number of employees hired in each year.
+Assignment 9: Employees Hired in Regions with a Specific Name
+Task: Display EMPLOYEE_ID, FIRST_NAME, LAST_NAME, and HIRE_DATE of employees who were hired in regions with the name 'Europe'.
+Hint: Use a subquery after the FROM clause to join employees with locations, countries, and regions tables.
 
-Determine the number of employees with the same manager.
-
-Find the average commission percentage for each department.
-
-Calculate the total duration (in days) that each employee spent in their job(s) from the `job_history` table.
-
-Find the highest salary offered for each job title.
-
-
-JOIN
-
-List all employees along with their department names.
-
-Find all employees and their job titles.
-
-
-Retrieve the job history of each employee along with the department name they worked in
-
-List the employees who are currently working under the same manager, displaying the manager's name.
-
-Retrieve the details of all departments located in a specific city i.e "Tokyo".
-
-Retrieve the details of all departments located in a specific cities i.e "Sydney" and "Toronto".
-
-### LEFT JOIN
-
-List all employees and their managers, including those without managers.
-
-Find all departments and their employees, including departments with no employees.
-
-Retrieve a list of all job titles and the employees who have that job, including job titles with no employees.
-
-### RIGHT JOIN Assignments
-Find all employees and the locations they are working in, including locations without any employees.
-
-List all countries and the regions they belong to, including regions without any countries.
-
-
-JOIN + Group BY
-
-List the number of employees working in each city.
-
-List the total salary expenditure for each department, along with the department name.
-
-Count the number of employees in each city.
-
-Calculate the average salary for each job title within each department.
-
-List the number of employees hired in each year for each job title.
-
-Find the highest salary paid in each region.
-
-Count the number of employees in each country.
-
-Calculate the average salary and the number of employees for each department located in a specific region.
+Assignment 10: Recent Job Changes
+Task: List EMPLOYEE_ID, FIRST_NAME, LAST_NAME, and the latest job JOB_ID for employees who have had more than one job.
+Hint: Use a subquery after the FROM clause to get the latest START_DATE from the job_history table.
