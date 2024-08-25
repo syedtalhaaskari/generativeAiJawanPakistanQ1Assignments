@@ -75,7 +75,7 @@ def homepage():
     choice = answer['choice']
     
     if choice == 7:
-        db.disconnect()
+        db.disconnect(db_conn)
         exit(0)
   
     options[choice]()
