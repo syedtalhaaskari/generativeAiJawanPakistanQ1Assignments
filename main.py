@@ -51,24 +51,6 @@ def display_products_and_categories():
 #  	display_products,
 #  	display_products_and_categories,
 # )
-  
-data_options = (
-	add_category,
- 	add_product,
- 	add_user,
-    add_order,
- 	add_payment
-)
-  
-stats_options = (
-	add_category,
- 	add_product,
- 	update_product,
- 	delete_product,
- 	display_categories,
- 	display_products,
- 	display_products_and_categories,
-)
 
 # def homepage():
 #     print()
@@ -97,6 +79,39 @@ stats_options = (
 #         exit(0)
   
 #     options[choice]()
+
+def sales_metrics():
+    print()
+    question = [
+        inquirer.List('choice',
+            message="Please Select",
+            choices=[
+                ('1. Total Revenue', 0),
+                ('2. Revenue by Product', 1),
+                ('3. Top Selling Products', 2),
+                ('4. Revenue by Region/City', 3),
+                ('5. Back', 4),
+                ('6. Back to Main Menu', 5),
+                ('7. Exit', 6),
+            ],
+        ),
+    ]
+    
+    answer = inquirer.prompt(question)
+    
+    choice = answer['choice']
+    if choice == 4:
+        clear_console()
+        display_stats()
+    elif choice == 5:
+        clear_console()
+        homepage()
+    elif choice == 6:
+        clear_console()
+        db.disconnect(db_conn)
+        exit(0)
+    else:
+        sales_metrics_options[choice]()
     
 def display_stats():
     print()
@@ -157,6 +172,31 @@ def add_data():
         exit(0)
     else:
         data_options[choice]()
+
+sales_metrics_options = (
+	add_category,
+ 	add_product,
+ 	add_user,
+    add_order,
+ 	add_payment
+)
+data_options = (
+	add_category,
+ 	add_product,
+ 	add_user,
+    add_order,
+ 	add_payment
+)
+  
+stats_options = (
+	sales_metrics,
+ 	add_product,
+ 	update_product,
+ 	delete_product,
+ 	display_categories,
+ 	display_products,
+ 	display_products_and_categories,
+)
 
 def homepage():
     print()
