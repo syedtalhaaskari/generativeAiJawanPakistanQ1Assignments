@@ -3,7 +3,7 @@ import re
 from tabulate import tabulate
 
 import db
-from query import insert_category, insert_user, get_categories, insert_product, get_products, get_users, insert_order, insert_order_details, insert_payment, update_total_amount_and_payment_id_in_order, get_orders_by_user_id, get_order_details_by_order_id, get_products_by_order_id_and_user_id
+from query import update_order_status_after_payment_by_id, update_products_by_quantity, cancel_order, get_products_by_ids, get_available_products, insert_category, insert_user, get_categories, insert_product, get_products, get_users, insert_order, insert_order_details, insert_payment, update_total_amount_and_payment_id_in_order, get_orders_by_user_id, get_order_details_by_order_id, get_products_by_order_id_and_user_id, get_unpaid_orders_by_user_id, update_payment_by_id
 
 db_conn = db.mysqlconnect()
 
@@ -16,6 +16,13 @@ def fetch_users():
 
 def fetch_products():
     products = get_products(db_conn)
+    list_products = []
+    for product in products:
+        list_products.append((product['product_name'], product))
+    return list_products
+
+def fetch_available_products():
+    products = get_available_products(db_conn)
     list_products = []
     for product in products:
         list_products.append((product['product_name'], product))
@@ -148,7 +155,7 @@ def add_order():
         inquirer.Checkbox(
             'products',
             message='Please Select Product(s) - Press space to select',
-            choices=fetch_products(),
+            choices=fetch_available_products(),
             validate=required_field_validation,
         )
     ]
@@ -199,58 +206,80 @@ def add_order():
     print('Please proceed to payment to confirm the order')
     
 def add_payment():
+    users = fetch_users()
+
+    if len(users) == 0:
+        print('No customers found.')
+        return
+
     questions_1 = [
         inquirer.List(
             'user',
             message='Please Select Customer',
             choices=fetch_users(),
         ),
-        # inquirer.Checkbox(
-        #     'payment_method',
-        #     message='Please select payment method:',
-        #     choices=[
-        #         'Cash',
-        #         'Card'
-        #     ]
-        # )
     ]
     answers_1 = inquirer.prompt(questions_1)
 
     user_id = answers_1['user']['id']
 
-    order_ids = [order['id'] for order in get_orders_by_user_id(db_conn, answers_1['user']['id'])]
-    # print('orders id ', order_ids)
+    fetched_orders = get_unpaid_orders_by_user_id(db_conn, user_id)
+
+    if len(fetched_orders) == 0:
+        print('No unpaid orders found for the selected customer.')
+        return
     
     orders = []
-    for order_id in order_ids:
-        orders.append(get_products_by_order_id_and_user_id(db_conn, order_id, user_id))
-    # order_details = get_order_details_by_order_id(db_conn, order_id)
-    # product_ids = tuple([order_item['product_id'] for order_item in order_details])
-    order_item_questions = []
-    # print('orders ', orders)
-    for order in orders:
-        header = order[0].keys()
-        rows =  [x.values() for x in order]
-        # print('header ', header)
-        # print('rows ', rows)
-        # for order_item in order:
-        #     print(order_item)
-        #     print()
-        # print(tabulate(rows, header))
-        order_item_questions.append((tabulate(rows, header, tablefmt="grid"), order[0]['order_id']))
+    for order in fetched_orders:
+        orders.append(
+            (f"""Id: {order['id']}, Total Amount: {order['total_amount']}, Payment Status: {order['order_status']}, Created At: {order['order_date']}""", order)
+        )
+    order_item_questions = [
+        inquirer.List(
+            'order',
+            message='Please Select Order To Pay',
+            choices=orders,
+        ),
+    ]
+    answers_2 = inquirer.prompt(order_item_questions)
 
-    questions_2 = [
-        inquirer.Checkbox(
+    order_id = answers_2['order']['id']
+
+    order_details = get_order_details_by_order_id(db_conn, order_id)
+
+    product_ids = str([order_detail['product_id'] for order_detail in order_details]).replace('[', '(').replace(']', ')')
+    products = get_products_by_ids(db_conn, product_ids)
+
+    for product in products:
+        ind  = next((i for i, item in enumerate(order_details) if item["product_id"] == product['id']), None)
+        if product['quantity'] == 0 or product['quantity'] < order_details[ind]['quantity']:
+            cancel_order(db_conn, order_id)
+            print(f'Payment failed and Order is cancelled for product {product["product_name"]}. Quantity is not available.')
+            return
+        
+    questions_3 = [
+        inquirer.List(
             'payment_method',
             message='Please select payment method:',
-            choices=order_item_questions
+            choices=[
+                'Cash',
+                'Card'
+            ]
         )
     ]
-    answers_2 = inquirer.prompt(questions_2)
-    # questions = [
-    #     inquirer.List(
-    #         'user',
-    #         message='Please Select Customer',
-    #         choices=fetch_users(),
-    #     ),
-    # ]
+    answers_3 = inquirer.prompt(questions_3)
+    payment_method = answers_3['payment_method']
+
+    payment_obj = {
+        'order_id': order_id,
+        'payment_method': payment_method,
+        'payment_status': 'Paid',
+        'user_id': user_id,
+        'total_amount': answers_2['order']['total_amount'],
+    }
+
+    update_payment_by_id(db_conn, payment_obj)
+    update_order_status_after_payment_by_id(db_conn, order_id)
+    update_products_by_quantity(db_conn, order_details)
+
+    print('Payment Successful')
