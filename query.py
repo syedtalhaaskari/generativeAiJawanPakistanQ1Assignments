@@ -25,7 +25,7 @@ def get_categories():
     try:
         db_conn = db.mysqlconnect()
         cur = db_conn.cursor()
-        cur.execute("SELECT * FROM Category")
+        cur.execute("SELECT * FROM Category ORDER BY category_name")
         return cur.fetchall()
     except pymysql.Error as e:
         print('Something went wrong,', e)
