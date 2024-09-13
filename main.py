@@ -1,14 +1,8 @@
 import inquirer
 import os
-import json
-
-import db
-from query import insert_category, add_product_by_name, update_product_name_by_id, delete_product_by_id, get_categories, get_products, get_categories_and_products
 
 from add_data_functions import add_category, add_user, add_product, add_order, add_payment
 from show_metrics_functions import print_top_cities_by_sales, print_top_countries_by_sales, print_inventory_levels, print_out_of_stock_products, print_payment_metrics, print_order_metrics, print_this_month_top_selling_products, print_revenue_by_product, print_revenue_by_city, print_total_revenue
-
-db_conn = db.mysqlconnect()
 
 def sales_metrics():
     print()
@@ -38,10 +32,10 @@ def sales_metrics():
         homepage()
     elif choice == 6:
         clear_console()
-        db.disconnect(db_conn)
         exit(0)
     else:
         sales_metrics_options[choice]()
+        sales_metrics()
 
 def product_metrics():
     print()
@@ -69,10 +63,10 @@ def product_metrics():
         homepage()
     elif choice == 4:
         clear_console()
-        db.disconnect(db_conn)
         exit(0)
     else:
         product_metrics_options[choice]()
+        product_metrics()
 
 def geographical_metrics():
     print()
@@ -100,10 +94,10 @@ def geographical_metrics():
         homepage()
     elif choice == 4:
         clear_console()
-        db.disconnect(db_conn)
         exit(0)
     else:
         geographical_metrics_options[choice]()
+        geographical_metrics()
     
 def display_stats():
     print()
@@ -130,10 +124,10 @@ def display_stats():
         homepage()
     elif choice == 6:
         clear_console()
-        db.disconnect(db_conn)
         exit(0)
     else:
         stats_options[choice]()
+        display_stats()
 
 def add_data():
     print()
@@ -160,10 +154,10 @@ def add_data():
         homepage()
     elif choice == 6:
         clear_console()
-        db.disconnect(db_conn)
         exit(0)
     else:
         data_options[choice]()
+        add_data()
 
 sales_metrics_options = (
 	print_total_revenue,
@@ -222,7 +216,6 @@ def homepage():
         clear_console()
         display_stats()
     elif choice == 2:
-        db.disconnect(db_conn)
         exit(0)
 
 def clear_console():

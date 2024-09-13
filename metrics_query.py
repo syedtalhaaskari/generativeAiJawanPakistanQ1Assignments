@@ -1,6 +1,9 @@
 import pymysql
 
-def get_total_revenue(db_conn):
+import db
+
+def get_total_revenue():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -27,8 +30,11 @@ def get_total_revenue(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
+	finally:
+		db.disconnect()
 
-def get_revenue_by_city(db_conn):
+def get_revenue_by_city():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -42,8 +48,11 @@ def get_revenue_by_city(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
+	finally:
+		db.disconnect()
 
-def get_revenue_by_product(db_conn):
+def get_revenue_by_product():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -61,8 +70,11 @@ def get_revenue_by_product(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
+	finally:
+		db.disconnect()
 
-def get_this_month_top_selling_products(db_conn):
+def get_this_month_top_selling_products():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -82,8 +94,11 @@ def get_this_month_top_selling_products(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
+	finally:
+		db.disconnect()
 
-def get_order_metrics(db_conn):
+def get_order_metrics():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -116,8 +131,11 @@ def get_order_metrics(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
+	finally:
+		db.disconnect()
 
-def get_payment_metrics(db_conn):
+def get_payment_metrics():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -142,7 +160,11 @@ def get_payment_metrics(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
-def get_payment_metrics(db_conn):
+	finally:
+		db.disconnect()
+
+def get_payment_metrics():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -167,8 +189,11 @@ def get_payment_metrics(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
+	finally:
+		db.disconnect()
 
-def get_inventory_levels(db_conn):
+def get_inventory_levels():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -181,8 +206,11 @@ def get_inventory_levels(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
+	finally:
+		db.disconnect()
 
-def get_out_of_stock_products(db_conn):
+def get_out_of_stock_products():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -196,8 +224,11 @@ def get_out_of_stock_products(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
+	finally:
+		db.disconnect()
 
-def get_top_cities_by_sales(db_conn):
+def get_top_cities_by_sales():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -212,8 +243,11 @@ def get_top_cities_by_sales(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
+	finally:
+		db.disconnect()
 
-def get_top_countries_by_sales(db_conn):
+def get_top_countries_by_sales():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
 		cur.execute("""
@@ -228,3 +262,5 @@ def get_top_countries_by_sales(db_conn):
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
+	finally:
+		db.disconnect()

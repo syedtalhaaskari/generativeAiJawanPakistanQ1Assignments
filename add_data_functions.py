@@ -1,35 +1,31 @@
 import inquirer
 import re
-from tabulate import tabulate
 
-import db
-from query import update_order_status_after_payment_by_id, update_products_by_quantity, cancel_order, get_products_by_ids, get_available_products, insert_category, insert_user, get_categories, insert_product, get_products, get_users, insert_order, insert_order_details, insert_payment, update_total_amount_and_payment_id_in_order, get_orders_by_user_id, get_order_details_by_order_id, get_products_by_order_id_and_user_id, get_unpaid_orders_by_user_id, update_payment_by_id
-
-db_conn = db.mysqlconnect()
+from query import update_order_status_after_payment_by_id, update_products_by_quantity, cancel_order, get_products_by_ids, get_available_products, insert_category, insert_user, get_categories, insert_product, get_products, get_users, insert_order, insert_order_details, insert_payment, update_total_amount_and_payment_id_in_order, get_order_details_by_order_id, get_unpaid_orders_by_user_id, update_payment_by_id
 
 def fetch_users():
-    users = get_users(db_conn)
+    users = get_users()
     list_users = []
     for user in users:
         list_users.append((f"{user['first_name']} {user['last_name']}", user))
     return list_users
 
 def fetch_products():
-    products = get_products(db_conn)
+    products = get_products()
     list_products = []
     for product in products:
         list_products.append((product['product_name'], product))
     return list_products
 
 def fetch_available_products():
-    products = get_available_products(db_conn)
+    products = get_available_products()
     list_products = []
     for product in products:
         list_products.append((product['product_name'], product))
     return list_products
 
 def fetch_categories():
-    categories = get_categories(db_conn)
+    categories = get_categories()
     list_categories = []
     for category in categories:
         list_categories.append((category['category_name'], category['id']))
@@ -67,7 +63,8 @@ def add_category():
     ]
     answer = inquirer.prompt(question)
     category_name = answer['category_name']
-    insert_category(db_conn, category_name)
+    insert_category(category_name)
+    print('\nCategory Added Successfully')
 
 def add_user():
     question = [
@@ -109,10 +106,16 @@ def add_user():
     ]
     
     answers = inquirer.prompt(question)
-    insert_user(db_conn, answers)
-    print('User Added Successfully')
+    insert_user(answers)
+    print('\nUser Added Successfully')
 
 def add_product():
+    categories = fetch_categories()
+    
+    if len(categories) <= 0:
+        print('Please Add Category First')
+        return
+
     question = [
         inquirer.Text(
             'product_name',
@@ -137,25 +140,35 @@ def add_product():
         inquirer.List(
             'category_id',
             message="Please select a category",
-            choices=fetch_categories(),
+            choices=categories,
         ),
     ]
     answers = inquirer.prompt(question)
 
-    insert_product(db_conn, answers)
+    insert_product(answers)
     print('Product Added Successfully')
 
 def add_order():
+    users = fetch_users()
+    products = fetch_available_products()
+    
+    if len(users) <= 0:
+        print('Please Add a User First')
+        return
+    if len(products) <= 0:
+        print('Please Add a Product First')
+        return
+
     question_1 = [
         inquirer.List(
             'user',
             message='Please Select Customer',
-            choices=fetch_users(),
+            choices=users,
         ),
         inquirer.Checkbox(
             'products',
             message='Please Select Product(s) - Press space to select',
-            choices=fetch_available_products(),
+            choices=products,
             validate=required_field_validation,
         )
     ]
@@ -183,7 +196,7 @@ def add_order():
     
     order_details_list = []
 
-    order_id = insert_order(db_conn, order_obj)
+    order_id = insert_order(order_obj)
     for product in answers_1['products']:
         order_details_list.append({
             "order_id": order_id,
@@ -192,17 +205,17 @@ def add_order():
             "quantity": answers_2['quantity'+ str(product['id'])],
         })
 
-    total_amount = insert_order_details(db_conn, order_details_list)
+    total_amount = insert_order_details(order_details_list)
     
     payment_obj = {
         'total_amount': total_amount,
         'order_id': order_id,
     }
-    payment_id = insert_payment(db_conn, payment_obj)
+    payment_id = insert_payment(payment_obj)
     
-    update_total_amount_and_payment_id_in_order(db_conn, order_id, total_amount, payment_id)
+    update_total_amount_and_payment_id_in_order(order_id, total_amount, payment_id)
     
-    print('Order Added Successfully')
+    print('\nOrder Added Successfully')
     print('Please proceed to payment to confirm the order')
     
 def add_payment():
@@ -223,7 +236,7 @@ def add_payment():
 
     user_id = answers_1['user']['id']
 
-    fetched_orders = get_unpaid_orders_by_user_id(db_conn, user_id)
+    fetched_orders = get_unpaid_orders_by_user_id(user_id)
 
     if len(fetched_orders) == 0:
         print('No unpaid orders found for the selected customer.')
@@ -245,15 +258,15 @@ def add_payment():
 
     order_id = answers_2['order']['id']
 
-    order_details = get_order_details_by_order_id(db_conn, order_id)
+    order_details = get_order_details_by_order_id(order_id)
 
     product_ids = str([order_detail['product_id'] for order_detail in order_details]).replace('[', '(').replace(']', ')')
-    products = get_products_by_ids(db_conn, product_ids)
+    products = get_products_by_ids(product_ids)
 
     for product in products:
         ind  = next((i for i, item in enumerate(order_details) if item["product_id"] == product['id']), None)
         if product['quantity'] == 0 or product['quantity'] < order_details[ind]['quantity']:
-            cancel_order(db_conn, order_id)
+            cancel_order(order_id)
             print(f'Payment failed and Order is cancelled for product {product["product_name"]}. Quantity is not available.')
             return
         
@@ -278,8 +291,8 @@ def add_payment():
         'total_amount': answers_2['order']['total_amount'],
     }
 
-    update_payment_by_id(db_conn, payment_obj)
-    update_order_status_after_payment_by_id(db_conn, order_id)
-    update_products_by_quantity(db_conn, order_details)
+    update_payment_by_id(payment_obj)
+    update_order_status_after_payment_by_id(order_id)
+    update_products_by_quantity(order_details)
 
     print('Payment Successful')

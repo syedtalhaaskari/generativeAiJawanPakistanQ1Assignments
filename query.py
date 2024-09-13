@@ -1,8 +1,10 @@
 import pymysql
+import db
 
-def insert_category(db_conn, category_name):
-	cur = db_conn.cursor()
+def insert_category(category_name):
 	try:
+		db_conn = db.mysqlconnect()
+		cur = db_conn.cursor()
 		cur.execute(
 			f"""
 			INSERT INTO Category 
@@ -16,15 +18,24 @@ def insert_category(db_conn, category_name):
 		db_conn.commit()
 	except pymysql.Error as e:
 		print('Something went wrong,', e)
+	finally:
+		db.disconnect()
   
-def get_categories(db_conn):
-	cur = db_conn.cursor()
-	cur.execute("SELECT * FROM Category")
-	return cur.fetchall()
-
-def insert_user(db_conn, user_obj):
-    cur = db_conn.cursor()
+def get_categories():
     try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
+        cur.execute("SELECT * FROM Category")
+        return cur.fetchall()
+    except pymysql.Error as e:
+        print('Something went wrong,', e)
+    finally:
+        db.disconnect()
+
+def insert_user(user_obj):
+    try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
         cur.execute(
 			f"""
 			INSERT INTO User
@@ -43,16 +54,25 @@ def insert_user(db_conn, user_obj):
 			""")
         db_conn.commit()
     except pymysql.Error as e:
-        print('Something went wrong,', e)
+        print('Something went wrong,', e)    
+    finally:
+        db.disconnect()
         
-def get_users(db_conn):
-	cur = db_conn.cursor()
-	cur.execute("SELECT * FROM User")
-	return cur.fetchall()
-
-def insert_product(db_conn, product_obj):
-    cur = db_conn.cursor()
+def get_users():
     try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
+        cur.execute("SELECT * FROM User")
+        return cur.fetchall()
+    except pymysql.Error as e:
+        print('Something went wrong,', e)
+    finally:
+        db.disconnect()
+
+def insert_product(product_obj):
+    try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
         cur.execute(
 			f"""
 			INSERT INTO Product
@@ -70,29 +90,46 @@ def insert_product(db_conn, product_obj):
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)
+    finally:
+        db.disconnect()
         
-def get_products(db_conn):
-	cur = db_conn.cursor()
-	cur.execute("SELECT * FROM Product")
-	return cur.fetchall()
+def get_products():
+    try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
+        cur.execute("SELECT * FROM Product")
+        return cur.fetchall()
+    except pymysql.Error as e:
+        print('Something went wrong,', e)
+    finally:
+        db.disconnect()
 
-def get_available_products(db_conn):
-	cur = db_conn.cursor()
-	cur.execute("SELECT * FROM Product Where quantity > 0")
-	return cur.fetchall()
+def get_available_products():
+    try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
+        cur.execute("SELECT * FROM Product Where quantity > 0")
+        return cur.fetchall()
+    except pymysql.Error as e:
+        print('Something went wrong,', e)
+    finally:
+        db.disconnect()
 
-def get_products_by_ids(db_conn, product_ids):
-	cur = db_conn.cursor()
-	print(str(product_ids))
+def get_products_by_ids(product_ids):
 	try:
+		db_conn = db.mysqlconnect()
+		cur = db_conn.cursor()
 		cur.execute(f"SELECT id, product_name, quantity FROM Product Where id IN {str(product_ids)}")
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong,', e)
+	finally:
+		db.disconnect()
 
-def insert_order(db_conn, order_obj):
-    cur = db_conn.cursor()
+def insert_order(order_obj):
     try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
         cur.execute(f"""
 			INSERT INTO Order_Table
 			(
@@ -110,10 +147,13 @@ def insert_order(db_conn, order_obj):
         return cur.fetchall()[0]['id']
     except pymysql.Error as e:
         print('Something went wrong,', e)
+    finally:
+        db.disconnect()
 
-def cancel_order(db_conn, order_id):
-    cur = db_conn.cursor()
+def cancel_order(order_id):
     try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
         cur.execute(f"""
 			Update Order_Table
 			SET order_status = 'Cancelled'
@@ -127,9 +167,10 @@ def cancel_order(db_conn, order_id):
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)
+    finally:
+        db.disconnect()
 
-def insert_order_details(db_conn, order_details_list):
-    cur = db_conn.cursor()
+def insert_order_details(order_details_list):
     query_string = ''
     total_amount = 0
     for order_obj in order_details_list: 
@@ -142,6 +183,8 @@ def insert_order_details(db_conn, order_details_list):
 		),"""
     query_string = query_string[:-1]  # remove trailing comma
     try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
         cur.execute(f"""
 			INSERT INTO Order_Details
 				(
@@ -152,12 +195,15 @@ def insert_order_details(db_conn, order_details_list):
         db_conn.commit()
         return total_amount
     except pymysql.Error as e:
-        print('Something went wrong,', e)    
+        print('Something went wrong,', e)  
+    finally:
+        db.disconnect()  
 
-def update_products_by_quantity(db_conn, order_details_list):
-    cur = db_conn.cursor()
+def update_products_by_quantity(order_details_list):
     try:
+        db_conn = db.mysqlconnect()
         for order_obj in order_details_list:
+            cur = db_conn.cursor()
             quantity = order_obj['quantity']
             id = order_obj['product_id']
             cur.execute(f"""
@@ -167,11 +213,14 @@ def update_products_by_quantity(db_conn, order_details_list):
 			""")
             db_conn.commit()
     except pymysql.Error as e:
-        print('Something went wrong,', e)      
+        print('Something went wrong,', e)   
+    finally:
+        db.disconnect()   
 
-def insert_payment(db_conn, payment_obj):
-    cur = db_conn.cursor()
+def insert_payment(payment_obj):
     try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
         cur.execute(f"""
 			INSERT INTO Payment
 			(
@@ -187,10 +236,13 @@ def insert_payment(db_conn, payment_obj):
         return cur.fetchall()[0]['id']
     except pymysql.Error as e:
         print('Something went wrong,', e)
+    finally:
+        db.disconnect()
         
-def update_total_amount_and_payment_id_in_order(db_conn, order_id, total_amount, payment_id):
-    cur = db_conn.cursor()
+def update_total_amount_and_payment_id_in_order(order_id, total_amount, payment_id):
     try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
         cur.execute(f"""
 			UPDATE Order_Table
    			SET total_amount = {total_amount}, payment_id = {payment_id}
@@ -199,27 +251,36 @@ def update_total_amount_and_payment_id_in_order(db_conn, order_id, total_amount,
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)
+    finally:
+        db.disconnect()
 
-def get_orders_by_user_id(db_conn, user_id):
-	cur = db_conn.cursor()
+def get_orders_by_user_id(user_id):
 	try:
+		db_conn = db.mysqlconnect()
+		cur = db_conn.cursor()
 		cur.execute(f"SELECT * FROM Order_Table WHERE user_id = {user_id}")
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong,', e)
+	finally:
+		db.disconnect()
 
-def get_order_details_by_order_id(db_conn, order_id):
-	cur = db_conn.cursor()
+def get_order_details_by_order_id(order_id):
 	try:
+		db_conn = db.mysqlconnect()
+		cur = db_conn.cursor()
 		cur.execute(f"SELECT * FROM Order_Details WHERE order_id = {order_id}")
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong,', e)
+	finally:
+		db.disconnect()
   
-def get_unpaid_orders_by_user_id(db_conn, user_id):
-    cur = db_conn.cursor()
-    try:
-        cur.execute(f"""
+def get_unpaid_orders_by_user_id(user_id):
+	try:
+		db_conn = db.mysqlconnect()
+		cur = db_conn.cursor()
+		cur.execute(f"""
             SELECT
                 o.id,
                 o.order_date,
@@ -228,13 +289,16 @@ def get_unpaid_orders_by_user_id(db_conn, user_id):
 			FROM order_table o
 			WHERE o.user_id = {user_id} AND o.order_status = 'Payment Pending';
         """)
-        return cur.fetchall()
-    except pymysql.Error as e:
-        print('Something went wrong,', e)
+		return cur.fetchall()
+	except pymysql.Error as e:
+		print('Something went wrong,', e)
+	finally:
+		db.disconnect()
 
-def update_order_status_after_payment_by_id(db_conn, order_id):
-    cur = db_conn.cursor()
+def update_order_status_after_payment_by_id(order_id):
     try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
         cur.execute(f"""
             UPDATE Order_Table
             SET 
@@ -245,10 +309,13 @@ def update_order_status_after_payment_by_id(db_conn, order_id):
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)
+    finally:
+        db.disconnect()
 
-def update_payment_by_id(db_conn, payment_obj):
-    cur = db_conn.cursor()
+def update_payment_by_id(payment_obj):
     try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
         cur.execute(f"""
             UPDATE Payment
             SET 
@@ -262,10 +329,13 @@ def update_payment_by_id(db_conn, payment_obj):
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)
+    finally:
+        db.disconnect()
 
-def get_products_by_order_id_and_user_id(db_conn, order_id, user_id):
-    cur = db_conn.cursor()
+def get_products_by_order_id_and_user_id(order_id, user_id):
     try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
         cur.execute(f"""
             SELECT
 				od.order_id,
@@ -282,56 +352,88 @@ def get_products_by_order_id_and_user_id(db_conn, order_id, user_id):
         return cur.fetchall()
     except pymysql.Error as e:
         print('Something went wrong,', e)
+    finally:
+        db.disconnect()
   
-def add_product_by_name(db_conn, product_name, cat_id):
-	cur = db_conn.cursor()
-	cur.execute(
-		f"""
-		INSERT INTO product 
-		(
-			name,
-			cat_id
-		)
-		VALUES (
-			'{product_name}',
-			'{cat_id}'
-		)
-		""")
-	db_conn.commit()
+def add_product_by_name(product_name, cat_id):
+    try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
+        cur.execute(
+			f"""
+			INSERT INTO product 
+			(
+				name,
+				cat_id
+			)
+			VALUES (
+				'{product_name}',
+				'{cat_id}'
+			)
+			""")
+        db_conn.commit()
+    except pymysql.Error as e:
+        print('Something went wrong,', e)
+    finally:
+        db.disconnect()
  
-def update_product_name_by_id(db_conn, product_name, product_id):
-	cur = db_conn.cursor()
-	cur.execute(
-		f"""
-		UPDATE product 
-  		SET name = '{product_name}'
-    	WHERE id = {product_id};
-		""")
-	db_conn.commit()
+def update_product_name_by_id(product_name, product_id):
+    try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
+        cur.execute(
+			f"""
+			UPDATE product 
+			SET name = '{product_name}'
+			WHERE id = {product_id};
+			""")
+        db_conn.commit()
+    except pymysql.Error as e:
+        print('Something went wrong,', e)
+    finally:
+        db.disconnect()
  
-def delete_product_by_id(db_conn, product_id):
-    cur = db_conn.cursor()
-    cur.execute(f"DELETE FROM product WHERE id = {product_id}")
-    db_conn.commit()
+def delete_product_by_id(product_id):
+    try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
+        cur.execute(f"DELETE FROM product WHERE id = {product_id}")
+        db_conn.commit()
+    except pymysql.Error as e:
+        print('Something went wrong,', e)
+    finally:
+        db.disconnect()
 
-def get_products(db_conn):
-	cur = db_conn.cursor()
-	cur.execute("SELECT * FROM product")
-	return cur.fetchall()
+def get_products():
+    try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
+        cur.execute("SELECT * FROM product")
+        return cur.fetchall()
+    except pymysql.Error as e:
+        print('Something went wrong,', e)
+    finally:
+        db.disconnect()
 
-def get_categories_and_products(db_conn):
-	cur = db_conn.cursor()
-	cur.execute("""
-		SELECT
-			c.id AS category_id,
-			c.name AS category_name,
-			c.created_at AS category_created_at,
-			p.id AS product_id,
-			p.name AS product_name,
-			p.created_at AS product_created_at,
-			p.updated_at AS product_updated_at
-		FROM category c
-		LEFT JOIN product p
-			ON c.id = p.cat_id;
-    """)
-	return cur.fetchall()
+def get_categories_and_products():
+    try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
+        cur.execute("""
+			SELECT
+				c.id AS category_id,
+				c.name AS category_name,
+				c.created_at AS category_created_at,
+				p.id AS product_id,
+				p.name AS product_name,
+				p.created_at AS product_created_at,
+				p.updated_at AS product_updated_at
+			FROM category c
+			LEFT JOIN product p
+				ON c.id = p.cat_id;
+		""")
+        return cur.fetchall()
+    except pymysql.Error as e:
+        print('Something went wrong,', e)
+    finally:
+        db.disconnect()
