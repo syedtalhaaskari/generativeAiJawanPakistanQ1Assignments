@@ -11,10 +11,4 @@
 Add a .env file for mysql db authentication.
 
 run commands 
-> pip install inquirer
-Then
-> python main.py
-If program does not start
-run command
-> pip install crytography
-> python main.py
+> pip install -r requirements.txt
