@@ -1,7 +1,7 @@
 # Assignments Repo for Generative AI Jawan Pakistan Q1
 ## Syed Talha Askari
 
-### Class 15 Assignments
+### Class 17 Assignments
 
 ### Switch branch to view assignments
 
@@ -9,12 +9,8 @@
 
 #### Instructions to run python assignment
 Add a .env file for mysql db authentication.
+run db.sql file in mysql workbench
 
 run commands 
-> pip install inquirer
-Then
-> python main.py
-If program does not start
-run command
-> pip install crytography
+> pip install -r requirements.txt
 > python main.py
