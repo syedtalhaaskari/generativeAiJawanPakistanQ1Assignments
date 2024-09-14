@@ -9,6 +9,7 @@
 
 #### Instructions to run python assignment
 Add a .env file for mysql db authentication.
+
 run db.sql file in mysql workbench
 
 run commands 
