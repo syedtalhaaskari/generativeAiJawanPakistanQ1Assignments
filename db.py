@@ -10,9 +10,12 @@ DB_USER = os.getenv('DB_USER') or 'root'
 DB_PASSWORD = os.getenv('DB_PASSWORD') or ''
 DB_DBNAME = os.getenv('DB_DBNAME') or 'assignment_db'
 
+db_conn = {}
+
 def mysqlconnect():
+    global db_conn
     # To connect MySQL database
-    conn = pymysql.connect(
+    db_conn = pymysql.connect(
         host=DB_HOST,
         port=DB_PORT,
         user=DB_USER,
@@ -20,9 +23,8 @@ def mysqlconnect():
         db=DB_DBNAME,
         cursorclass=pymysql.cursors.DictCursor,
     )
-    print("db connected")
-    return conn
+    return db_conn
     
 
-def disconnect(conn):
-    conn.close()
+def disconnect():
+    db_conn.close()

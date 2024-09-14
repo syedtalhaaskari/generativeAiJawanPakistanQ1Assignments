@@ -2,10 +2,7 @@ import inquirer
 import os
 import json
 
-import db
 from query import add_category_by_name, add_product_by_name, update_product_name_by_id, delete_product_by_id, get_categories, get_products, get_categories_and_products
-
-db_conn = db.mysqlconnect()
 
 def print_mysql_data(data):
     print(
@@ -14,32 +11,32 @@ def print_mysql_data(data):
 
 def add_category():
     category_name = input("Please enter category name: ")
-    add_category_by_name(db_conn, category_name)
+    add_category_by_name(category_name)
 
 def add_product():
     product_name = input("Please enter product name: ")
     cat_id = int(input("Please enter cat_id: ")) or 0
-    add_product_by_name(db_conn, product_name, cat_id)
+    add_product_by_name(product_name, cat_id)
 
 def update_product():
 	product_name = input("Please enter product new name: ")
 	product_id = int(input("Please enter product id: ")) or 0
-	update_product_name_by_id(db_conn, product_name, product_id)
+	update_product_name_by_id(product_name, product_id)
  
 def delete_product():
 	product_id = int(input("Please enter product id: ")) or 0
-	delete_product_by_id(db_conn, product_id)
+	delete_product_by_id(product_id)
 
 def display_categories():
-	categories = get_categories(db_conn)
+	categories = get_categories()
 	print_mysql_data(categories)
 
 def display_products():
-	products = get_products(db_conn)
+	products = get_products()
 	print_mysql_data(products)
 
 def display_products_and_categories():
-    products_and_categories = get_categories_and_products(db_conn)
+    products_and_categories = get_categories_and_products()
     print_mysql_data(products_and_categories)
   
 options = (
@@ -75,12 +72,12 @@ def homepage():
     choice = answer['choice']
     
     if choice == 7:
-        db.disconnect(db_conn)
         exit(0)
   
     options[choice]()
 
 os.system('cls' if os.name=='nt' else 'clear')
 
-while True:
-	homepage()
+if __name__ == '__main__':
+    while True:
+        homepage()
