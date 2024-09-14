@@ -68,14 +68,18 @@ def get_categories():
 	return data
 
 def get_products():
-	db_conn = db.mysqlconnect()
-	cur = db_conn.cursor()
-	cur.execute("SELECT * FROM product")
-	data = cur.fetchall()
-	db.disconnect()
-	return data
+	try:
+		db_conn = db.mysqlconnect()
+		cur = db_conn.cursor()
+		cur.execute("SELECT * FROM product")
+		return cur.fetchall()
+	except pymysql.Error as e:
+		print('Something went wrong:', e)
+	finally:
+		db.disconnect()
 
 def get_categories_and_products():
+	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	cur.execute("""
 		SELECT

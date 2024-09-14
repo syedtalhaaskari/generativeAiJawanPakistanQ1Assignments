@@ -1,83 +1,50 @@
-import inquirer
-import os
-import json
+from flask import Flask, request
 
-from query import add_category_by_name, add_product_by_name, update_product_name_by_id, delete_product_by_id, get_categories, get_products, get_categories_and_products
+from query import get_categories_and_products, delete_product_by_id, update_product_name_by_id, add_product_by_name, add_category_by_name, get_products, get_categories 
 
-def print_mysql_data(data):
-    print(
-	  	json.dumps(data, default=str, indent=4)
-	)
+app = Flask(__name__)
 
-def add_category():
-    category_name = input("Please enter category name: ")
-    add_category_by_name(category_name)
+@app.route('/categories', methods=['GET', 'POST'])
+def categories():
+    if request.method == 'GET':
+        fetched_categories = get_categories()
+        return fetched_categories if len(fetched_categories) > 0 else []
+    if request.method == 'POST':
+        data = request.get_json()
+        add_category_by_name(data['name'])
+        return 'Category added successfully!'
 
-def add_product():
-    product_name = input("Please enter product name: ")
-    cat_id = int(input("Please enter cat_id: ")) or 0
-    add_product_by_name(product_name, cat_id)
+@app.route('/products', methods=['GET', 'POST'])
+def products():
+    if request.method == 'GET':
+        fetched_products = get_products()
+        return fetched_products if len(fetched_products) > 0 else []
+    if request.method == 'POST':
+        data = request.get_json()
+        add_product_by_name(data['name'], data['category_id'])
+        return 'Product added successfully!'
 
-def update_product():
-	product_name = input("Please enter product new name: ")
-	product_id = int(input("Please enter product id: ")) or 0
-	update_product_name_by_id(product_name, product_id)
- 
-def delete_product():
-	product_id = int(input("Please enter product id: ")) or 0
-	delete_product_by_id(product_id)
+@app.route('/products/<int:id>', methods=['PUT', 'DELETE'])
+def product(id):
+    if request.method == 'PUT':
+        data = request.get_json()
+        update_product_name_by_id(data['new_name'], id)
+        return 'Product updated successfully!'
+    if request.method == 'DELETE':
+        data = request.get_json()
+        delete_product_by_id(id)
+        return 'Product deleted successfully!'
 
-def display_categories():
-	categories = get_categories()
-	print_mysql_data(categories)
+@app.route('/products_and_categories', methods=['GET'])
+def products_and_categories():
+    if request.method == 'GET':
+        fetched_items = get_categories_and_products()
+        return fetched_items if len(fetched_items) > 0 else []
 
-def display_products():
-	products = get_products()
-	print_mysql_data(products)
+@app.route('/products_count', methods=['GET'])
+def products_count():
+    if request.method == 'GET':
+        fetched_products = get_products()
+        return str(len(fetched_products))
 
-def display_products_and_categories():
-    products_and_categories = get_categories_and_products()
-    print_mysql_data(products_and_categories)
-  
-options = (
-	add_category,
- 	add_product,
- 	update_product,
- 	delete_product,
- 	display_categories,
- 	display_products,
- 	display_products_and_categories,
-)
-
-def homepage():
-    print()
-    question = [
-        inquirer.List('choice',
-            message="What action do you want to perform",
-            choices=[
-                ('1. Add Categories', 0),
-                ('2. Add Products', 1),
-                ('3. Update Product', 2),
-                ('4. Delete Product', 3),
-                ('5. Display All Categories', 4),
-                ('6. Display All Products', 5),
-                ('7. Display Both Product and Categories Combine', 6),
-                ('8. Exit', 7),
-            ],
-        ),
-    ]
-    
-    answer = inquirer.prompt(question)
-    
-    choice = answer['choice']
-    
-    if choice == 7:
-        exit(0)
-  
-    options[choice]()
-
-os.system('cls' if os.name=='nt' else 'clear')
-
-if __name__ == '__main__':
-    while True:
-        homepage()
+app.run(debug=True)

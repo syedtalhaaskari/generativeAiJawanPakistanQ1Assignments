@@ -25,6 +25,5 @@ def mysqlconnect():
     )
     return db_conn
     
-
 def disconnect():
     db_conn.close()
