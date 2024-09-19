@@ -18,6 +18,7 @@ def insert_category(category_name):
 		db_conn.commit()
 	except pymysql.Error as e:
 		print('Something went wrong,', e)
+		return e
 	finally:
 		db.disconnect()
   
