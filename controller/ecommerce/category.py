@@ -25,7 +25,5 @@ def categories():
             return 'Category Added Successfully', 200
         except Exception as e:
             return str(e), 500
-        # Add a new category
-        pass
     else:
         return 'Invalid request method', 405

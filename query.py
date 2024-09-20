@@ -12,9 +12,9 @@ def insert_category(category_name):
 				category_name
 			)
 			VALUES (
-				'{category_name}'
+				%(category_name)s
 			)
-			""")
+			""", { 'category_name' : category_name })
 		db_conn.commit()
 	except pymysql.Error as e:
 		print('Something went wrong,', e)
