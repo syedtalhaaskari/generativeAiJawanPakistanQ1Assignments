@@ -12,7 +12,7 @@ def products():
             # Fetch all products
             if products is None:
                 raise Exception ('Something went wrong')
-            return products
+            return products if len(products) > 0 else []
         except Exception as e:
             return str(e), 500
     elif request.method == 'POST':

@@ -12,7 +12,7 @@ def categories():
             # Fetch all categories
             if categories is None:
                 raise Exception ('Something went wrong')
-            return categories
+            return categories if len(categories) > 0 else []
         except Exception as e:
             return str(e), 500
     elif request.method == 'POST':

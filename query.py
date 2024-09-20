@@ -81,13 +81,19 @@ def insert_product(product_obj):
 				product_name, product_details, price, quantity, category_id
 			)
 			VALUES (
-				'{product_obj['product_name']}',
-				'{product_obj['product_details']}',
-				{product_obj['price']},
-				{product_obj['quantity']},
-				{product_obj['category_id']}
+				%(product_name)s,
+				%(product_details)s,
+				%(price)s,
+				%(quantity)s,
+				%(category_id)s
 			)
-			""")
+			""", {
+                "product_name" : product_obj['product_name'],
+                "product_details" : product_obj['product_details'],
+                "price" : product_obj['price'],
+                "quantity" : product_obj['quantity'],
+                "category_id" : product_obj['category_id']
+            })
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)
@@ -137,12 +143,17 @@ def insert_order(order_obj):
 				user_id, shipping_address, city, country
 			)
 			VALUES (
-				{order_obj["user_id"]},
-				'{order_obj["shipping_address"]}',
-				'{order_obj["city"]}',
-				'{order_obj["country"]}'
+				%(user_id)s,
+				%(shipping_address)s,
+				%(city)s,
+				%(country)s
 			);
-		""")
+		""", {
+            "user_id" : order_obj["user_id"],
+            "shipping_address" : order_obj["shipping_address"],
+            "city" : order_obj["city"],
+            "country" : order_obj["country"]
+        })
         db_conn.commit()
         cur.execute("SELECT LAST_INSERT_ID() AS id;")
         return cur.fetchall()[0]['id']
@@ -228,10 +239,13 @@ def insert_payment(payment_obj):
 				total_amount, order_id
 			)
 			VALUES (
-				{payment_obj["total_amount"]},
-				{payment_obj["order_id"]}
+				%(total_amount)s,
+				%(order_id)s
 			);
-		""")
+		""", {
+            "total_amount" : payment_obj["total_amount"],
+            "order_id" : payment_obj["order_id"]
+        })
         db_conn.commit()
         cur.execute("SELECT LAST_INSERT_ID() AS id;")
         return cur.fetchall()[0]['id']
@@ -246,9 +260,13 @@ def update_total_amount_and_payment_id_in_order(order_id, total_amount, payment_
         cur = db_conn.cursor()
         cur.execute(f"""
 			UPDATE Order_Table
-   			SET total_amount = {total_amount}, payment_id = {payment_id}
-			WHERE id = {order_id};
-		""")
+   			SET total_amount = %(total_amount)s, payment_id = %(payment_id)s
+			WHERE id = %(order_id)s;
+		""", {
+            "order_id" : order_id,
+            "total_amount" : total_amount,
+            "payment_id" : payment_id
+        })
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)
@@ -259,7 +277,7 @@ def get_orders_by_user_id(user_id):
 	try:
 		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
-		cur.execute(f"SELECT * FROM Order_Table WHERE user_id = {user_id}")
+		cur.execute(f"SELECT * FROM Order_Table WHERE user_id = %(user_id)s", { "user_id" : user_id })
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong,', e)
