@@ -33,40 +33,122 @@ def get_total_revenue():
 	finally:
 		db.disconnect()
 
-def get_revenue_by_city():
+def get_revenue_by_city(start_date = None, end_date = None):
 	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
-		cur.execute("""
-			SELECT
-				city,
-				CONCAT('$', SUM(total_amount)) AS total_revenue
-			FROM order_table
-			WHERE order_status = 'Delivered'
-			GROUP BY city;
-		""")
+		if start_date is not None and end_date is not None:
+			cur.execute("""
+				SELECT
+					city,
+					CONCAT('$', SUM(total_amount)) AS total_revenue
+				FROM order_table
+				WHERE order_status = 'Delivered' AND delivery_date >= %(start_date)s AND delivery_date <= %(end_date)s
+				GROUP BY city;
+			""", {
+				'start_date': start_date,
+                'end_date': end_date
+			})
+		elif start_date is not None:
+			cur.execute("""
+				SELECT
+					city,
+					CONCAT('$', SUM(total_amount)) AS total_revenue
+				FROM order_table
+				WHERE order_status = 'Delivered' AND delivery_date >= %(start_date)s
+				GROUP BY city;
+			""", {
+				'start_date': start_date
+			})
+		elif start_date is not None:
+			cur.execute("""
+				SELECT
+					city,
+					CONCAT('$', SUM(total_amount)) AS total_revenue
+				FROM order_table
+				WHERE order_status = 'Delivered' AND delivery_date <= %(end_date)s
+				GROUP BY city;
+			""", {
+				'end_date': end_date
+			})
+		else:
+			cur.execute("""
+				SELECT
+					city,
+					CONCAT('$', SUM(total_amount)) AS total_revenue
+				FROM order_table
+				WHERE order_status = 'Delivered'
+				GROUP BY city;
+			""")
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
 	finally:
 		db.disconnect()
 
-def get_revenue_by_product():
+def get_revenue_by_product(start_date = None, end_date = None):
 	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
-		cur.execute("""
-			SELECT
-				p.product_name,
-				CONCAT('$', SUM(od.total_price)) AS total_revenue
-			FROM order_table o
-			JOIN order_details od
-				ON o.id = od.order_id
-			JOIN product p
-				ON p.id = od.product_id
-			WHERE order_status = 'Delivered'
-			GROUP BY p.id;
-		""")
+		if start_date is not None and end_date is not None:
+			cur.execute("""
+				SELECT
+					p.product_name,
+					CONCAT('$', SUM(od.total_price)) AS total_revenue
+				FROM order_table o
+				JOIN order_details od
+					ON o.id = od.order_id
+				JOIN product p
+					ON p.id = od.product_id
+				WHERE o.order_status = 'Delivered' AND o.delivery_date >= %(start_date)s AND o.delivery_date <= %(end_date)s
+				GROUP BY p.id;
+			""", {
+				'start_date': start_date,
+                'end_date': end_date
+			})
+		elif start_date is not None:
+			cur.execute("""
+				SELECT
+					p.product_name,
+					CONCAT('$', SUM(od.total_price)) AS total_revenue
+				FROM order_table o
+				JOIN order_details od
+					ON o.id = od.order_id
+				JOIN product p
+					ON p.id = od.product_id
+				WHERE o.order_status = 'Delivered' AND o.delivery_date >= %(start_date)s
+				GROUP BY p.id;
+			""", {
+					'start_date': start_date
+				})
+		elif end_date is not None:
+			cur.execute("""
+				SELECT
+					p.product_name,
+					CONCAT('$', SUM(od.total_price)) AS total_revenue
+				FROM order_table o
+				JOIN order_details od
+					ON o.id = od.order_id
+				JOIN product p
+					ON p.id = od.product_id
+				WHERE o.order_status = 'Delivered' AND o.delivery_date <= %(end_date)s
+				GROUP BY p.id;
+			""", {
+				'end_date': end_date
+			})
+		else:
+			cur.execute("""
+				SELECT
+					p.product_name,
+					CONCAT('$', SUM(od.total_price)) AS total_revenue
+				FROM order_table o
+				JOIN order_details od
+					ON o.id = od.order_id
+				JOIN product p
+					ON p.id = od.product_id
+				WHERE o.order_status = 'Delivered'
+				GROUP BY p.id;
+			""")
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)

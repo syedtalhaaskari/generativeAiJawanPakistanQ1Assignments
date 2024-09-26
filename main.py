@@ -7,7 +7,7 @@ from controller.ecommerce.order import order
 from controller.ecommerce.payment import payment
 
 # Metrics Blueprints
-
+from controller.ecommerce.metrics.sales import sales
 
 app = Flask(__name__)
 
@@ -16,6 +16,8 @@ app.register_blueprint(product)
 app.register_blueprint(customer)
 app.register_blueprint(order)
 app.register_blueprint(payment)
+
+app.register_blueprint(sales)
 
 @app.route('/')
 def index():
