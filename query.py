@@ -44,15 +44,23 @@ def insert_user(user_obj):
 				first_name, last_name, email, phone_number, address, city, country
 			)
 			VALUES (
-				'{user_obj['first_name']}',
-				'{user_obj['last_name']}',
-				'{user_obj['email']}',
-				'{user_obj['phone_number']}',
-				'{user_obj['address']}',
-				'{user_obj['city']}',
-				'{user_obj['country']}'
+                %(first_name)s,
+                %(last_name)s,
+                %(email)s,
+                %(phone_number)s,
+                %(address)s,
+                %(city)s,
+                %(country)s
 			)
-			""")
+			""", {
+                'first_name' : user_obj['first_name'],
+                'last_name' : user_obj['last_name'],
+                'email' : user_obj['email'],
+                'phone_number' : user_obj['phone_number'],
+                'address' : user_obj['address'],
+                'city' : user_obj['city'],
+                'country' : user_obj['country']
+            })
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)    
@@ -64,6 +72,19 @@ def get_users():
         db_conn = db.mysqlconnect()
         cur = db_conn.cursor()
         cur.execute("SELECT * FROM User")
+        return cur.fetchall()
+    except pymysql.Error as e:
+        print('Something went wrong,', e)
+    finally:
+        db.disconnect()
+        
+def get_user_by_id(user_id):
+    try:
+        db_conn = db.mysqlconnect()
+        cur = db_conn.cursor()
+        cur.execute("SELECT * FROM User WHERE id = %(user_id)s", {
+            "user_id": user_id
+		})
         return cur.fetchall()
     except pymysql.Error as e:
         print('Something went wrong,', e)
@@ -126,7 +147,7 @@ def get_products_by_ids(product_ids):
 	try:
 		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
-		cur.execute(f"SELECT id, product_name, quantity FROM Product Where id IN {str(product_ids)}")
+		cur.execute(f"SELECT id, product_name, quantity, price FROM Product Where id IN {str(product_ids)}")
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong,', e)
@@ -167,15 +188,19 @@ def cancel_order(order_id):
         db_conn = db.mysqlconnect()
         cur = db_conn.cursor()
         cur.execute(f"""
-			Update Order_Table
+			UPDATE Order_Table
 			SET order_status = 'Cancelled'
-            WHERE id = {order_id};
-		""")
+            WHERE id = %(order_id)s;
+		""", {
+            "order_id" : order_id
+		})
         cur.execute(f"""
-			Update Payment
+			UPDATE Payment
 			SET payment_status = 'Cancelled'
-            WHERE order_id = {order_id};
-		""")
+            WHERE order_id = %(order_id)s;
+		""", {
+            "order_id" : order_id
+		})
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)
@@ -220,9 +245,12 @@ def update_products_by_quantity(order_details_list):
             id = order_obj['product_id']
             cur.execute(f"""
 				UPDATE Product
-				SET quantity = quantity - {quantity}
-				WHERE id = {id};
-			""")
+				SET quantity = quantity - %(quantity)s
+				WHERE id = %(id)s;
+			""", {
+                "quantity" : quantity,
+                "id" : id
+			})
             db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)   
@@ -273,11 +301,135 @@ def update_total_amount_and_payment_id_in_order(order_id, total_amount, payment_
     finally:
         db.disconnect()
 
-def get_orders_by_user_id(user_id):
+def get_orders_by_user_id(user_id, customer_name = None, order_date = None, product_name = None):
 	try:
 		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
-		cur.execute(f"SELECT * FROM Order_Table WHERE user_id = %(user_id)s", { "user_id" : user_id })
+		query_string = f"""
+			SELECT 
+				o.*,
+				CONCAT(u.first_name, ' ', u.last_name) AS customer_name,
+				p.product_name
+			FROM Order_Table o
+			JOIN user u
+				ON u.id = o.user_id
+			LEFT JOIN order_details od
+				ON od.order_id = o.id
+			JOIN product p
+				ON p.id = od.product_id
+			WHERE o.user_id = %(user_id)s;
+		"""
+		if customer_name is not None and order_date is not None and product_name is not None:
+			query_string = f"""
+				SELECT 
+					o.*,
+					CONCAT(u.first_name, ' ', u.last_name) AS customer_name,
+					p.product_name
+				FROM Order_Table o
+				JOIN user u
+					ON u.id = o.user_id AND (u.first_name LIKE %(customer_name)s OR u.last_name LIKE %(customer_name)s)
+				LEFT JOIN order_details od
+					ON od.order_id = o.id
+				JOIN product p
+					ON p.id = od.product_id AND p.product_name LIKE %(product_name)s
+				WHERE o.user_id = %(user_id)s and o.order_date >= %(order_date)s;
+			"""
+		elif customer_name is not None and order_date is not None:
+			query_string = f"""
+				SELECT 
+					o.*,
+					CONCAT(u.first_name, ' ', u.last_name) AS customer_name,
+					p.product_name
+				FROM Order_Table o
+				JOIN user u
+					ON u.id = o.user_id AND (u.first_name LIKE %(customer_name)s OR u.last_name LIKE %(customer_name)s)
+				LEFT JOIN order_details od
+					ON od.order_id = o.id
+				JOIN product p
+					ON p.id = od.product_id
+				WHERE o.user_id = %(user_id)s and o.order_date >= %(order_date)s;
+			"""
+		elif customer_name is not None and product_name is not None:
+			query_string = f"""
+				SELECT 
+					o.*,
+					CONCAT(u.first_name, ' ', u.last_name) AS customer_name,
+					p.product_name
+				FROM Order_Table o
+				JOIN user u
+					ON u.id = o.user_id AND (u.first_name LIKE %(customer_name)s OR u.last_name LIKE %(customer_name)s)
+				LEFT JOIN order_details od
+					ON od.order_id = o.id
+				JOIN product p
+					ON p.id = od.product_id AND p.product_name LIKE %(product_name)s
+				WHERE o.user_id = %(user_id)s;
+			"""
+		elif order_date is not None and product_name is not None:
+			query_string = f"""
+				SELECT 
+					o.*,
+					CONCAT(u.first_name, ' ', u.last_name) AS customer_name,
+					p.product_name
+				FROM Order_Table o
+				JOIN user u
+					ON u.id = o.user_id
+				LEFT JOIN order_details od
+					ON od.order_id = o.id
+				JOIN product p
+					ON p.id = od.product_id AND p.product_name LIKE %(product_name)s
+				WHERE o.user_id = %(user_id)s and o.order_date >= %(order_date)s;
+			"""
+		elif customer_name is not None:
+			query_string = f"""
+				SELECT 
+					o.*,
+					CONCAT(u.first_name, ' ', u.last_name) AS customer_name,
+					p.product_name
+				FROM Order_Table o
+				JOIN user u
+					ON u.id = o.user_id AND (u.first_name LIKE %(customer_name)s OR u.last_name LIKE %(customer_name)s)
+				LEFT JOIN order_details od
+					ON od.order_id = o.id
+				JOIN product p
+					ON p.id = od.product_id
+				WHERE o.user_id = %(user_id)s;
+			"""
+		elif order_date is not None:
+			query_string = f"""
+				SELECT 
+					o.*,
+					CONCAT(u.first_name, ' ', u.last_name) AS customer_name,
+					p.product_name
+				FROM Order_Table o
+				JOIN user u
+					ON u.id = o.user_id
+				LEFT JOIN order_details od
+					ON od.order_id = o.id
+				JOIN product p
+					ON p.id = od.product_id
+				WHERE o.user_id = %(user_id)s and o.order_date >= %(order_date)s;
+			"""
+		elif product_name is not None:
+			query_string = f"""
+				SELECT 
+					o.*,
+					CONCAT(u.first_name, ' ', u.last_name) AS customer_name,
+					p.product_name
+				FROM Order_Table o
+				JOIN user u
+					ON u.id = o.user_id
+				LEFT JOIN order_details od
+					ON od.order_id = o.id
+				JOIN product p
+					ON p.id = od.product_id AND p.product_name LIKE %(product_name)s
+				WHERE o.user_id = %(user_id)s;
+			"""
+		cur.execute(query_string, { 
+            "user_id" : user_id,
+            "customer_name" : '%' + customer_name if customer_name is not None else '' + '%',
+            "order_date" : order_date,
+            "product_name" : '%' + product_name if product_name is not None else '' + '%'
+        })
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong,', e)
@@ -288,7 +440,9 @@ def get_order_details_by_order_id(order_id):
 	try:
 		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
-		cur.execute(f"SELECT * FROM Order_Details WHERE order_id = {order_id}")
+		cur.execute(f"SELECT * FROM Order_Details WHERE order_id = %(order_id)s", {
+            "order_id" : order_id
+		})
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong,', e)
@@ -323,8 +477,10 @@ def update_order_status_after_payment_by_id(order_id):
             SET 
         		order_status='Delivered',
         		delivery_date=NOW()
-			WHERE id = {order_id};
-        """)
+			WHERE id = %(order_id)s;
+        """, {
+            "order_id": order_id
+		})
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)
@@ -338,13 +494,18 @@ def update_payment_by_id(payment_obj):
         cur.execute(f"""
             UPDATE Payment
             SET 
-        		order_id={payment_obj['order_id']},
-        		payment_method='{payment_obj['payment_method']}',
-        		payment_status='{payment_obj['payment_status']}',
-        		total_amount={payment_obj['total_amount']},
+        		order_id=%(order_id)s,
+        		payment_method=%(payment_method)s,
+        		payment_status=%(payment_status)s,
+        		total_amount=%(total_amount)s,
                 payment_date=NOW()
-			WHERE order_id = {payment_obj['order_id']};
-        """)
+			WHERE order_id = %(order_id)s;
+        """, {
+            "order_id" : payment_obj['order_id'],
+            "payment_method" : payment_obj['payment_method'],
+            "payment_status" : payment_obj['payment_status'],
+            "total_amount" : payment_obj['total_amount']
+		})
         db_conn.commit()
     except pymysql.Error as e:
         print('Something went wrong,', e)
@@ -423,11 +584,14 @@ def delete_product_by_id(product_id):
     finally:
         db.disconnect()
 
-def get_products():
+def get_products(query = None):
     try:
         db_conn = db.mysqlconnect()
         cur = db_conn.cursor()
-        cur.execute("SELECT * FROM product")
+        query_str = " WHERE c.category_name = %(query)s" if query is not None else ''
+        cur.execute("SELECT p.*, c.category_name FROM product p JOIN category c ON p.category_id = c.id" + query_str, {
+            "query": query
+        })
         return cur.fetchall()
     except pymysql.Error as e:
         print('Something went wrong,', e)
