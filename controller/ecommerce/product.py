@@ -8,11 +8,12 @@ product = Blueprint('product', __name__)
 def products():
     if request.method == 'GET':
         try:
-            products = get_products()
+            query_category = request.args.get('category')
+            products = get_products(query_category)
             # Fetch all products
             if products is None:
                 raise Exception ('Something went wrong')
-            return products if len(products) > 0 else []
+            return products if len(products) > 0 else [], 200
         except Exception as e:
             return str(e), 500
     elif request.method == 'POST':
@@ -29,8 +30,6 @@ def products():
             # Fetch all products
             if response is not None:
                 raise Exception (response)
-            return 'Product Added Successfully', 200
+            return 'Product Added Successfully', 201
         except Exception as e:
             return str(e), 500
-    else:
-        return 'Invalid request method', 405

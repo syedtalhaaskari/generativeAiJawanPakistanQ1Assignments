@@ -12,7 +12,7 @@ def categories():
             # Fetch all categories
             if categories is None:
                 raise Exception ('Something went wrong')
-            return categories if len(categories) > 0 else []
+            return categories if len(categories) > 0 else [], 200
         except Exception as e:
             return str(e), 500
     elif request.method == 'POST':
@@ -22,8 +22,6 @@ def categories():
             # Fetch all categories
             if response is not None:
                 raise Exception (response)
-            return 'Category Added Successfully', 200
+            return 'Category Added Successfully', 201
         except Exception as e:
             return str(e), 500
-    else:
-        return 'Invalid request method', 405

@@ -7,15 +7,18 @@ order = Blueprint('order', __name__)
 @order.route('/api/orders', methods=['GET', 'POST'])
 def orders():
     if request.method == 'GET':
-        user_id = request.args.get('user_id')
         try:
+            user_id = request.args.get('user_id')
+            customer_name = request.args.get('customer_name')
+            order_date = request.args.get('order_date')
+            product_name = request.args.get('product_name')
             if user_id is None:
                 raise Exception('User ID is required')
-            orders = get_orders_by_user_id(user_id)
+            orders = get_orders_by_user_id(user_id, customer_name, order_date, product_name)
             # Fetch all orders
             if orders is None:
                 raise Exception ('Something went wrong')
-            return orders if len(orders) > 0 else []
+            return orders if len(orders) > 0 else [], 200
         except Exception as e:
             return str(e), 500
     elif request.method == 'POST':
@@ -53,8 +56,6 @@ def orders():
 
             update_total_amount_and_payment_id_in_order(order_id, total_amount, payment_id)
     
-            return 'Order Added Successfully', 200
+            return 'Order Added Successfully', 201
         except Exception as e:
             return str(e), 500
-    else:
-        return 'Invalid request method', 405
