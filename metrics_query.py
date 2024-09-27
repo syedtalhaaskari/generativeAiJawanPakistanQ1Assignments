@@ -179,11 +179,11 @@ def get_this_month_top_selling_products():
 	finally:
 		db.disconnect()
 
-def get_order_metrics():
+def get_order_metrics(start_date = None, end_date = None):
 	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
-		cur.execute("""
+		query_str = """
 			SELECT
 				(
 					SELECT
@@ -209,7 +209,95 @@ def get_order_metrics():
 					FROM order_table o
 					WHERE o.order_status = 'Delivered'
 				) AS 'Total Successful Orders';
-		""")
+		"""
+		if start_date is not None and end_date is not None:
+			query_str = f"""
+			SELECT
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE order_date >= %(start_date)s AND order_date <= %(end_date)s
+				) AS 'Total Orders This Month',
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE o.order_status = 'Cancelled' AND order_date >= %(start_date)s AND order_date <= %(end_date)s
+				) AS 'Total Cancelled Orders',
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE o.order_status = 'Payment Pending' AND order_date >= %(start_date)s AND order_date <= %(end_date)s
+				) AS 'Total Pending Orders',
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE o.order_status = 'Delivered' AND order_date >= %(start_date)s AND order_date <= %(end_date)s
+				) AS 'Total Successful Orders';
+			"""
+		elif start_date is not None:
+			query_str = f"""
+			SELECT
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE order_date >= %(start_date)s
+				) AS 'Total Orders This Month',
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE o.order_status = 'Cancelled' AND order_date >= %(start_date)s
+				) AS 'Total Cancelled Orders',
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE o.order_status = 'Payment Pending' AND order_date >= %(start_date)s
+				) AS 'Total Pending Orders',
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE o.order_status = 'Delivered' AND order_date >= %(start_date)s
+				) AS 'Total Successful Orders';
+			"""
+		elif end_date is not None:
+			query_str = f"""
+			SELECT
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE order_date <= %(end_date)s
+				) AS 'Total Orders This Month',
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE o.order_status = 'Cancelled' AND order_date <= %(end_date)s
+				) AS 'Total Cancelled Orders',
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE o.order_status = 'Payment Pending' AND order_date <= %(end_date)s
+				) AS 'Total Pending Orders',
+				(
+					SELECT
+						COUNT(o.id)
+					FROM order_table o
+					WHERE o.order_status = 'Delivered' AND order_date <= %(end_date)s
+				) AS 'Total Successful Orders';
+			"""
+		cur.execute(query_str, {
+		    'start_date': start_date,
+            'end_date': end_date
+		})
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)
@@ -245,11 +333,11 @@ def get_payment_metrics():
 	finally:
 		db.disconnect()
 
-def get_payment_metrics():
+def get_payment_metrics(start_date = None, end_date = None):
 	db_conn = db.mysqlconnect()
 	cur = db_conn.cursor()
 	try:
-		cur.execute("""
+		query_str = """
 			SELECT
 				(
 					SELECT
@@ -267,7 +355,71 @@ def get_payment_metrics():
 						ON p.order_id = o.id
 					WHERE o.order_date > DATE_SUB(NOW(), INTERVAL 1 MONTH) AND p.payment_status = 'Paid'
 				) AS 'Successful Payments (This Month)';
-		""")
+		"""
+		if start_date is not None and end_date is not None:
+			query_str = f"""
+                SELECT
+                    (
+                        SELECT
+                            CONCAT('$', SUM(p.total_amount))
+                        FROM payment p
+                        JOIN order_table o
+                            ON p.order_id = o.id
+                        WHERE o.order_date >= %(start_date)s AND o.order_date <= %(end_date)s AND p.payment_status = 'Pending'
+                    ) AS 'Pending Payments',
+                    (
+                        SELECT
+                            CONCAT('$', SUM(p.total_amount))
+                        FROM payment p
+                        JOIN order_table o
+                            ON p.order_id = o.id
+                        WHERE o.order_date >= %(start_date)s AND o.order_date <= %(end_date)s AND p.payment_status = 'Paid'
+				) AS 'Successful Payments (This Month)';
+			"""
+		elif start_date is not None:
+			query_str = f"""
+                SELECT
+                    (
+                        SELECT
+                            CONCAT('$', SUM(p.total_amount))
+                        FROM payment p
+                        JOIN order_table o
+                            ON p.order_id = o.id
+                        WHERE o.order_date >= %(start_date)s AND p.payment_status = 'Pending'
+                    ) AS 'Pending Payments',
+                    (
+                        SELECT
+                            CONCAT('$', SUM(p.total_amount))
+                        FROM payment p
+                        JOIN order_table o
+                            ON p.order_id = o.id
+                        WHERE o.order_date >= %(start_date)s AND p.payment_status = 'Paid'
+                ) AS 'Successful Payments (This Month)';
+            """
+		elif end_date is not None:
+			query_str = f"""
+                SELECT
+                    (
+                        SELECT
+                            CONCAT('$', SUM(p.total_amount))
+                        FROM payment p
+                        JOIN order_table o
+                            ON p.order_id = o.id
+                        WHERE o.order_date <= %(end_date)s AND p.payment_status = 'Pending'
+                    ) AS 'Pending Payments',
+                    (
+                        SELECT
+                            CONCAT('$', SUM(p.total_amount))
+                        FROM payment p
+                        JOIN order_table o
+                            ON p.order_id = o.id
+                        WHERE o.order_date <= %(end_date)s AND p.payment_status = 'Paid'
+                ) AS 'Successful Payments (This Month)';
+            """
+		cur.execute(query_str, {
+			'start_date': start_date,
+            'end_date': end_date
+		})
 		return cur.fetchall()
 	except pymysql.Error as e:
 		print('Something went wrong:', e)

@@ -8,6 +8,10 @@ from controller.ecommerce.payment import payment
 
 # Metrics Blueprints
 from controller.ecommerce.metrics.sales import sales
+from controller.ecommerce.metrics.orders import orders
+from controller.ecommerce.metrics.payments import payments
+from controller.ecommerce.metrics.products import products
+from controller.ecommerce.metrics.geography import geography
 
 app = Flask(__name__)
 
@@ -18,6 +22,10 @@ app.register_blueprint(order)
 app.register_blueprint(payment)
 
 app.register_blueprint(sales)
+app.register_blueprint(orders)
+app.register_blueprint(payments)
+app.register_blueprint(products)
+app.register_blueprint(geography)
 
 @app.route('/')
 def index():
