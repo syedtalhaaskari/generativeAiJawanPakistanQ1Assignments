@@ -16,13 +16,13 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `category`
+-- Table structure for table `Category`
 --
 
-DROP TABLE IF EXISTS `category`;
+DROP TABLE IF EXISTS `Category`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `category` (
+CREATE TABLE `Category` (
   `id` int NOT NULL AUTO_INCREMENT,
   `category_name` varchar(45) NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -33,13 +33,13 @@ CREATE TABLE `category` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `category`
+-- Dumping data for table `Category`
 --
 
-LOCK TABLES `category` WRITE;
-/*!40000 ALTER TABLE `category` DISABLE KEYS */;
-INSERT INTO `category` VALUES (1,'Tech','2024-09-13 09:48:42'),(2,'Furniture','2024-09-13 09:58:20'),(3,'Food','2024-09-13 10:54:26'),(4,'Life Style','2024-09-13 11:01:45'),(5,'Other','2024-09-13 11:02:15');
-/*!40000 ALTER TABLE `category` ENABLE KEYS */;
+LOCK TABLES `Category` WRITE;
+/*!40000 ALTER TABLE `Category` DISABLE KEYS */;
+INSERT INTO `Category` VALUES (1,'Tech','2024-09-13 09:48:42'),(2,'Furniture','2024-09-13 09:58:20'),(3,'Food','2024-09-13 10:54:26'),(4,'Life Style','2024-09-13 11:01:45'),(5,'Other','2024-09-13 11:02:15');
+/*!40000 ALTER TABLE `Category` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -158,7 +158,7 @@ CREATE TABLE `product` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `fk_category_id_idx` (`category_id`),
-  CONSTRAINT `fk_category_id` FOREIGN KEY (`category_id`) REFERENCES `category` (`id`)
+  CONSTRAINT `fk_category_id` FOREIGN KEY (`category_id`) REFERENCES `Category` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
