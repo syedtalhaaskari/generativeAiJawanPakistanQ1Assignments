@@ -19,7 +19,6 @@ def categories():
         try:
             data = request.get_json()
             response = insert_category(data.get('category_name'))
-            # Fetch all categories
             if response is not None:
                 raise Exception (response)
             return 'Category Added Successfully', 201
