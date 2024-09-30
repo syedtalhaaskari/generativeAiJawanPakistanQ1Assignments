@@ -1,5 +1,7 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, make_response
 import bcrypt 
+
+from notes_query import get_user
 
 signin = Blueprint('signin', __name__)
 
@@ -7,25 +9,20 @@ signin = Blueprint('signin', __name__)
 
 def user_signin():
 	try:
-		users = [
-			{
-				"username": "talha",
-				"password": b'$2b$12$5y4jYCCp/SkMVXOBcUjVNePwy5jgt.EA3wh/Xra/gsfzoPV.Grk5m'
-			}
-		]
 		data = request.get_json()
-		user_obj = {
-			"username": data.get("username"),
-			"password": data.get("password")
-		}
-		if user_obj['username'] is None or len(user_obj['username']) == 0:
+		username = data.get("username")
+		password = data.get("password")
+		if username is None or len(username) == 0:
 				return 'Username is required', 400
-		if user_obj['password'] is None or len(user_obj['password']) == 0:
+		if password is None or len(password) == 0:
 				return 'Password is required', 400
-		bytes = user_obj['password'].encode('utf-8') 
-		for user in users:
-			if user_obj['username'] == user['username'] and bcrypt.checkpw(bytes, user['password']):
-				return 'User authenticated successfully', 200
+		bytes = password.encode('utf-8')
+		response = get_user(username)
+
+		if response is not None and bcrypt.checkpw(bytes, response['password']):
+			resp = make_response('User authenticated successfully')
+			resp.set_cookie('user_id', str(response['id']))
+			return resp, 200
 
 		return 'Invalid Username or Password', 401
 	except Exception as e:

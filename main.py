@@ -18,6 +18,7 @@ from controller.ecommerce.metrics.geography import geography
 from controller.notes.signup import signup
 from controller.notes.signin import signin
 from controller.notes.category import notes_category
+from controller.notes.notes import notes
 
 app = Flask(__name__)
 
@@ -38,6 +39,7 @@ app.register_blueprint(geography)
 app.register_blueprint(signup)
 app.register_blueprint(signin)
 app.register_blueprint(notes_category)
+app.register_blueprint(notes)
 
 @app.route('/')
 def index():

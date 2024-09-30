@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 
-from query import get_categories, insert_category
+from notes_query import get_categories, insert_category
 
 notes_category = Blueprint('notes_category', __name__)
 

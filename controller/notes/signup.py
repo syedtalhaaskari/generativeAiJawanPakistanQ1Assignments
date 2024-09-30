@@ -1,6 +1,8 @@
 from flask import Blueprint, request
 import bcrypt 
 
+from notes_query import insert_user
+
 signup = Blueprint('signup', __name__)
 
 @signup.route('/signup', methods=['POST'])
@@ -24,12 +26,12 @@ def user_signup():
 
 		# Hashing the password 
 		user_obj['password'] = bcrypt.hashpw(bytes, salt) 
-		# response = insert_category(data.get('category_name'))
-		# Fetch all categories
-		# if response is not None:
-		print(user_obj)
-		print(b'$2b$12$5y4jYCCp/SkMVXOBcUjVNePwy5jgt.EA3wh/Xra/gsfzoPV.Grk5m' == user_obj['password'])
-	    #     raise Exception (response)
-		return 'User Signup Successfully', 201
+		response = insert_user(user_obj)
+		if response == True:
+			return 'User Signup Successfully, Please Login to Continue', 201
+		elif response.args[0] == 1062:
+			return 'User already exists', 400
+		else:
+			raise Exception(response)
 	except Exception as e:
 	    return str(e), 500

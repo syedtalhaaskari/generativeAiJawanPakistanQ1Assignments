@@ -38,7 +38,7 @@ def basic_note_operations():
             return str(e), 500
 
 @notes.route('/notes/<int:note_id>', methods=['PUT', 'DELETE'])
-def basic_note_operations(note_id):
+def delete_update_note_operations(note_id):
     if request.method == 'PUT':
         try:
             data = request.get_json()
