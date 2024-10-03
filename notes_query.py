@@ -1,9 +1,9 @@
 import pymysql
-import notes_db
+import db
 
 def insert_category(name):
 	try:
-		db_conn = notes_db.mysqlconnect()
+		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
 		cur.execute(
 			f"""
@@ -20,22 +20,22 @@ def insert_category(name):
 		print('Something went wrong,', e)
 		return e
 	finally:
-		notes_db.disconnect()
+		db.disconnect()
   
 def get_categories():
     try:
-        db_conn = notes_db.mysqlconnect()
+        db_conn = db.mysqlconnect()
         cur = db_conn.cursor()
         cur.execute("SELECT * FROM Category ORDER BY name")
         return cur.fetchall()
     except pymysql.Error as e:
         print('Something went wrong,', e)
     finally:
-        notes_db.disconnect()
+        db.disconnect()
   
 def get_category_by_id(id):
     try:
-        db_conn = notes_db.mysqlconnect()
+        db_conn = db.mysqlconnect()
         cur = db_conn.cursor()
         cur.execute("SELECT * FROM Category WHERE id = %(id)s", {
 			"id": id
@@ -44,11 +44,11 @@ def get_category_by_id(id):
     except pymysql.Error as e:
         print('Something went wrong,', e)
     finally:
-        notes_db.disconnect()
+        db.disconnect()
 
 def insert_user(user_obj):
 	try:
-		db_conn = notes_db.mysqlconnect()
+		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
 		cur.execute(
 			f"""
@@ -71,11 +71,11 @@ def insert_user(user_obj):
 		print('Something went wrong,', e)
 		return e
 	finally:
-		notes_db.disconnect()
+		db.disconnect()
 
 def get_user(username):
 	try:
-		db_conn = notes_db.mysqlconnect()
+		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
 		cur.execute(
 			f"""
@@ -89,11 +89,11 @@ def get_user(username):
 		print('Something went wrong,', e)
 		return e
 	finally:
-		notes_db.disconnect()
+		db.disconnect()
 
 def get_user_by_id(user_id):
 	try:
-		db_conn = notes_db.mysqlconnect()
+		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
 		cur.execute(
 			f"""
@@ -107,11 +107,11 @@ def get_user_by_id(user_id):
 		print('Something went wrong,', e)
 		return e
 	finally:
-		notes_db.disconnect()
+		db.disconnect()
   
 def get_user_notes(user_id, title = None, category_id = None, date_created = None):
     try:
-        db_conn = notes_db.mysqlconnect()
+        db_conn = db.mysqlconnect()
         cur = db_conn.cursor()
         query_str = "SELECT * FROM Note WHERE user_id = %(user_id)s"
         if title is not None:
@@ -130,11 +130,11 @@ def get_user_notes(user_id, title = None, category_id = None, date_created = Non
     except pymysql.Error as e:
         print('Something went wrong,', e)
     finally:
-        notes_db.disconnect()
+        db.disconnect()
   
 def get_note_by_id(user_id, note_id):
     try:
-        db_conn = notes_db.mysqlconnect()
+        db_conn = db.mysqlconnect()
         cur = db_conn.cursor()
         cur.execute(f"SELECT * FROM Note WHERE user_id = %(user_id)s AND id = %(id)s;", {
 			"user_id" : user_id,
@@ -145,11 +145,11 @@ def get_note_by_id(user_id, note_id):
     except pymysql.Error as e:
         print('Something went wrong,', e)
     finally:
-        notes_db.disconnect()
+        db.disconnect()
 
 def insert_note(note_obj):
 	try:
-		db_conn = notes_db.mysqlconnect()
+		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
 		cur.execute("""
 			INSERT INTO Note 
@@ -177,11 +177,11 @@ def insert_note(note_obj):
 		print('Something went wrong,', e)
 		return e
 	finally:
-		notes_db.disconnect()
+		db.disconnect()
 
 def update_note(note_obj):
 	try:
-		db_conn = notes_db.mysqlconnect()
+		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
 		cur.execute("""
 			UPDATE Note 
@@ -203,11 +203,11 @@ def update_note(note_obj):
 		print('Something went wrong,', e)
 		return e
 	finally:
-		notes_db.disconnect()
+		db.disconnect()
 
 def delete_note(user_id, note_id):
 	try:
-		db_conn = notes_db.mysqlconnect()
+		db_conn = db.mysqlconnect()
 		cur = db_conn.cursor()
 		cur.execute("""
 			DELETE FROM Note
@@ -222,4 +222,4 @@ def delete_note(user_id, note_id):
 		print('Something went wrong,', e)
 		return e
 	finally:
-		notes_db.disconnect()
+		db.disconnect()

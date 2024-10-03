@@ -9,6 +9,7 @@ signin = Blueprint('signin', __name__)
 
 def user_signin():
 	try:
+		ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
 		data = request.get_json()
 		username = data.get("username")
 		password = data.get("password")
