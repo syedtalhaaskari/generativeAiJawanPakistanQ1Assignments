@@ -1,17 +1,25 @@
+from datetime import datetime
+
 from flask import Blueprint, request
 
-from notes_query import delete_note, get_category_by_id, update_note, get_note_by_id, get_user_by_id, get_user_notes, insert_note
+from notes_query import get_session_by_id, delete_note, get_category_by_id, update_note, get_note_by_id, get_user_by_id, get_user_notes, insert_note
 
 notes = Blueprint('notes', __name__)
 
 @notes.route('/notes', methods=['GET', 'POST'])
 def basic_note_operations():
-    user_id = request.cookies.get('user_id')
-    if user_id is None:
+    session_id = request.cookies.get('session_id')
+    if session_id is None:
         return 'Please Login To Continue', 401
-    user_id_response = get_user_by_id(user_id)
-    if user_id_response is None:
+    session_obj = {
+        "session_id": session_id,
+        "ip_address": request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+    }
+    session_id_response = get_session_by_id(session_obj)
+    now = datetime.now()
+    if session_id_response is None or now >= session_id_response["expires_at"]:
         return 'Invalid User', 401
+    user_id = session_id_response["user_id"]
 
     if request.method == 'GET':
         try:
@@ -58,12 +66,18 @@ def basic_note_operations():
 
 @notes.route('/notes/<int:note_id>', methods=['GET', 'PUT', 'DELETE'])
 def delete_update_note_operations(note_id):
-    user_id = request.cookies.get('user_id')
-    if user_id is None:
+    session_id = request.cookies.get('session_id')
+    if session_id is None:
         return 'Please Login To Continue', 401
-    user_id_response = get_user_by_id(user_id)
-    if user_id_response is None:
+    session_obj = {
+        "session_id": session_id,
+        "ip_address": request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+    }
+    session_id_response = get_session_by_id(session_obj)
+    now = datetime.now()
+    if session_id_response is None or now >= session_id_response["expires_at"]:
         return 'Invalid User', 401
+    user_id = session_id_response["user_id"]
 
     response_note = get_note_by_id(user_id, note_id)
     

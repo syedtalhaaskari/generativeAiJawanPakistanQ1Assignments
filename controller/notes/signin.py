@@ -1,7 +1,10 @@
-from flask import Blueprint, request, make_response
-import bcrypt 
+import uuid
+from datetime import datetime, timedelta
 
-from notes_query import get_user
+from flask import Blueprint, request, make_response
+import bcrypt
+
+from notes_query import get_user, insert_session
 
 signin = Blueprint('signin', __name__)
 
@@ -9,7 +12,6 @@ signin = Blueprint('signin', __name__)
 
 def user_signin():
 	try:
-		ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
 		data = request.get_json()
 		username = data.get("username")
 		password = data.get("password")
@@ -21,9 +23,23 @@ def user_signin():
 		response = get_user(username)
 
 		if response is not None and bcrypt.checkpw(bytes, response['password']):
-			resp = make_response('User authenticated successfully')
-			resp.set_cookie('user_id', str(response['id']))
-			return resp, 200
+			ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+			session_id = uuid.uuid4()
+			session_obj = {
+				"session_id": str(session_id),
+				"user_id": response['id'],
+				"ip_address": ip_address,
+			}
+			session_resp = insert_session(session_obj)
+			if session_resp is not None:
+				resp = make_response('User authenticated successfully')
+				resp.set_cookie(
+        			'session_id', 
+           			str(session_id),
+                    expires=datetime.now() + timedelta(hours=1)
+                )
+				return resp, 200
+			return "Something went wrong", 500
 
 		return 'Invalid Username or Password', 401
 	except Exception as e:

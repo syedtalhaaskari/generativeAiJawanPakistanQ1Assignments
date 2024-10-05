@@ -108,6 +108,55 @@ def get_user_by_id(user_id):
 		return e
 	finally:
 		db.disconnect()
+
+def get_session_by_id(session_obj):
+	try:
+		db_conn = db.mysqlconnect()
+		cur = db_conn.cursor()
+		cur.execute(
+			f"""
+			Select * FROM User_session
+			WHERE session_id = %(session_id)s AND ip_address = %(ip_address)s
+			""", { 
+				'session_id' : session_obj["session_id"],
+				'ip_address' : session_obj["ip_address"]
+			})
+		return cur.fetchone()
+	except pymysql.Error as e:
+		print('Something went wrong,', e)
+		return e
+	finally:
+		db.disconnect()
+  
+def insert_session(session_obj):
+	try:
+		db_conn = db.mysqlconnect()
+		cur = db_conn.cursor()
+		cur.execute(
+			f"""
+			INSERT INTO User_session 
+			(
+				session_id,
+				user_id,
+				ip_address
+			)
+			VALUES (
+				%(session_id)s,
+				%(user_id)s,
+				%(ip_address)s
+			)
+			""", {
+				'session_id' : session_obj['session_id'],
+				'user_id' : session_obj['user_id'],
+				'ip_address' : session_obj['ip_address']
+			})
+		db_conn.commit()
+		return True
+	except pymysql.Error as e:
+		print('Something went wrong,', e)
+		return e
+	finally:
+		db.disconnect()
   
 def get_user_notes(user_id, title = None, category_id = None, date_created = None):
     try:
