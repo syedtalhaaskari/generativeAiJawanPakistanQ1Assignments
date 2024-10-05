@@ -36,7 +36,8 @@ def user_signin():
 				resp.set_cookie(
         			'session_id', 
            			str(session_id),
-                    expires=datetime.now() + timedelta(hours=1)
+                    expires=datetime.now() + timedelta(hours=1),
+                    httponly=True
                 )
 				return resp, 200
 			return "Something went wrong", 500
