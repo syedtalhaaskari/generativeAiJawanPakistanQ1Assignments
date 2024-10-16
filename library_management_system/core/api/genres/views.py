@@ -89,7 +89,7 @@ def get_or_update_or_delete_genre(request: Request, id):
 
             return Response(data={ 'message', 'Genre Deleted Successfully' }, status=status.HTTP_200_OK)
     except Genre.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(data={ "error": "Genre does not exist" }, status=status.HTTP_404_NOT_FOUND)
     except GenreFieldError as err:
         return Response(data={"error": err.message },status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:

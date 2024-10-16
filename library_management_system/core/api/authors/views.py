@@ -97,7 +97,7 @@ def get_or_update_or_delete_author(request: Request, id):
 
             return Response(data={ 'message', 'Author Deleted Successfully' }, status=status.HTTP_200_OK)
     except Author.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(data={ "error": "Author does not exist" }, status=status.HTTP_404_NOT_FOUND)
     except AuthorFieldError as err:
         return Response(data={"error": err.message },status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
