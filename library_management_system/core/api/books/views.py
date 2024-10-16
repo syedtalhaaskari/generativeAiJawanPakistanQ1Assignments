@@ -51,8 +51,8 @@ def get_or_create_book(request: Request):
                 view_form_data.append({
                     "id": book.id,
                     "title": book.title,
-                    "author": author_data,
-                    "genre": genre_data,
+                    "authors": author_data,
+                    "genres": genre_data,
                     "published_date": book.published_date,
                 })
             return Response(data=view_form_data, status=status.HTTP_200_OK)
@@ -60,19 +60,21 @@ def get_or_create_book(request: Request):
             data = request.data
 
             title = data.get('title')
-            author = data.get('author')
-            genre = data.get('genre')
+            authors = data.get('authors')
+            genres = data.get('genres')
             published_date = data.get('published_date')
 
-            if title is not None and author is not None and genre is not None:
+            if title is not None and authors is not None and genres is not None:
                 book = Book()
 
                 book.title = title
                 book.published_date = published_date
                 book.save()
 
-                book.author.add(Author.objects.get(pk=author))
-                book.genre.add(Genre.objects.get(pk=genre))
+                author_obj = Author.objects.filter(id__in=authors)
+                book.author.add(*author_obj)
+                genre_obj = Genre.objects.filter(id__in=genres)
+                book.genre.add(*genre_obj)
 
                 return Response(data={"Success": "Book Added Successfully"}, status=status.HTTP_201_CREATED)
             raise BookFieldError("title, author and genre are required fields")
@@ -110,8 +112,8 @@ def get_or_update_or_delete_book(request: Request, id):
             book = {
                 "id": book.id,
                 "title": book.title,
-                "author": author_data,
-                "genre": genre_data,
+                "authors": author_data,
+                "genres": genre_data,
                 "published_date": book.published_date,
             }
             return Response(data=book, status=status.HTTP_200_OK)
@@ -132,15 +134,13 @@ def get_or_update_or_delete_book(request: Request, id):
 
             if authors is not None:
                 book.author.clear()
-                for author in authors:
-                    author_obj = Author.objects.get(pk=author)
-                    book.author.add(author_obj)
+                author_obj = Author.objects.filter(id__in=authors)
+                book.author.add(*author_obj)
 
             if genres is not None:
                 book.genre.clear()
-                for genre in genres:
-                    genre_obj = Genre.objects.get(pk=genre)
-                    book.genre.add(genre_obj)
+                genre_obj = Genre.objects.filter(id__in=genres)
+                book.genre.add(*genre_obj)
 
             return Response(data={ 'message': 'Book Updated Successfully' }, status=status.HTTP_200_OK)
         if request.method == 'DELETE':
