@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 
 from core.models.supplier import Supplier
+from core.models.product import Product
 from core.serializers.supplier import SupplierSerializer as SS
 
 @api_view(['GET', 'POST'])
@@ -34,8 +35,16 @@ def get_or_update_or_delete_supplier(request: Request, id):
 
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         if request.method == 'PUT':
-            serializer = SS(supplier, data=request.data)
+            data = request.data
+            serializer = SS(supplier, data=data)
+
             if serializer.is_valid():
+                product_ids = data.get('product_ids')
+                if product_ids is not None:
+                    product_obj = Product.objects.filter(id__in=product_ids).all()
+                    if len(product_obj) != len(product_ids):
+                        return Response(data="One or more of product id(s) are invalid", status=status.HTTP_400_BAD_REQUEST)
+                    supplier.product_supplier.set(product_ids)
                 for key, value in serializer.validated_data.items():
                     setattr(supplier, key, value)
                 supplier.save()

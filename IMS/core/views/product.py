@@ -21,7 +21,7 @@ def get_or_create_product(request: Request):
         if category_id is not None:
             product_obj = product_obj.filter(category_id=category_id)
         if supplier_id is not None:
-            product_obj = product_obj.product_supplier.filter(id=supplier_id)
+            product_obj = product_obj.filter(supplier__id=supplier_id)
 
         serializer = PS(product_obj.all(), many=True)
 
@@ -48,4 +48,42 @@ def get_or_create_product(request: Request):
         
 @api_view(['GET', 'PUT', 'DELETE'])
 def get_or_update_or_delete_product(request: Request, id):
-    pass
+    try:
+        product = Product.objects.select_related('category').prefetch_related('supplier').get(pk=id)
+        
+        if request.method == 'GET':
+            serializer = PS(product)
+
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        if request.method == 'PUT':
+            data = request.data
+
+            serializer = PS(product, data=data)
+
+            if serializer.is_valid():
+                supplier_ids = serializer.validated_data.pop('supplier_ids')
+                         
+                supplier_obj = Supplier.objects.filter(id__in=supplier_ids)
+                if len(supplier_obj) != len(supplier_ids):
+                    return Response(data="One or more of supplier id(s) are invalid", status=status.HTTP_400_BAD_REQUEST)
+                
+                category_obj = Category.objects.filter(id=serializer.validated_data['category_id'])
+
+                if category_obj is None:
+                    return Response(data="Invalid Category ID", status=status.HTTP_400_BAD_REQUEST)
+
+                for key, value in serializer.validated_data.items():
+                    setattr(product, key, value)
+                product.save()
+                product.supplier.set(supplier_ids)
+
+                return Response(data=serializer.validated_data, status=status.HTTP_200_OK)
+            else:
+                return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if request.method == 'DELETE':
+            product.delete()
+
+            return Response('Supplier Deleted Successfully', status=status.HTTP_204_NO_CONTENT)
+    except Product.DoesNotExist:
+        return Response(data={"error": 'Invalid Product'}, status=status.HTTP_400_BAD_REQUEST)
+         
