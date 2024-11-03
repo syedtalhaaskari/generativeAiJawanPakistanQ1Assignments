@@ -12,3 +12,6 @@ class Product(models.Model):
     supplier = models.ManyToManyField(Supplier, related_name="product_supplier")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name

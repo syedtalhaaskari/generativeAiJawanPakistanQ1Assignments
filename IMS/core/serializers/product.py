@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .category import CategorySerializer
+from .category import CategorySerializer, CategoryMetricsSerializer
 from .supplier import SupplierSerializer
 
 class ProductSerializer(serializers.Serializer):
@@ -21,3 +21,7 @@ class ProductSupplierSerializer(serializers.Serializer):
     supplier_ids = serializers.ListField(
         child=serializers.IntegerField(), write_only=True
     )
+
+class ProductMetricsSerializer(serializers.Serializer):
+    total_products = serializers.IntegerField()
+    category = serializers.DictField(child=CategoryMetricsSerializer())

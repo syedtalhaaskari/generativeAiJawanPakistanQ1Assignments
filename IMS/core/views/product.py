@@ -1,3 +1,5 @@
+from django.db.models import Count, Sum, Avg
+
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -87,3 +89,32 @@ def get_or_update_or_delete_product(request: Request, id):
     except Product.DoesNotExist:
         return Response(data={"error": 'Invalid Product'}, status=status.HTTP_400_BAD_REQUEST)
          
+@api_view(http_method_names=["GET"])
+def show_product_metrics(request: Request):
+    try:
+        response_obj = {
+            "total_products": 0,
+            "category": {},
+        }
+        product_obj = Product.objects
+        total_products = product_obj.count()
+
+        response_obj["total_products"] = total_products
+
+        group_categories = Category.objects.prefetch_related('product_category').annotate(
+            products_count=Count("product_category"), 
+            total_stock_quantity=Sum('product_category__quantity'),
+            average_price=Avg('product_category__price'),
+        )
+
+        for category in group_categories:
+            response_obj['category'][category.name] = {
+                "id": category.id,
+                "products_count": category.products_count or 0,
+                "total_stock_quantity": category.total_stock_quantity or 0,
+                "average_price": category.average_price or 0,
+            }
+
+        return Response(data=response_obj, status=status.HTTP_200_OK)
+    except Product.DoesNotExist:
+        return Response(data={"error": "Invalid Product"}, status=status.HTTP_400_BAD_REQUEST)
