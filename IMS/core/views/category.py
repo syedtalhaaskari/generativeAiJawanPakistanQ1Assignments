@@ -1,3 +1,5 @@
+from django.db.models import Sum, Avg
+
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -47,3 +49,24 @@ def get_or_update_or_delete_category(request: Request, id):
             return Response('Category Deleted Successfully', status=status.HTTP_204_NO_CONTENT)
     except Category.DoesNotExist:
         return Response(data={"error": 'Invalid Category'}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(http_method_names=['GET'])
+def show_category_metrics(request: Request):
+    try:
+        response_obj = {}
+
+        group_categories = Category.objects.prefetch_related('product_category').annotate(
+            total_stock_quantity=Sum('product_category__quantity'),
+            average_price=Avg('product_category__price'),
+        )
+
+        for category in group_categories:
+            response_obj[category.name] = {
+                "id": category.id,
+                "total_stock_quantity": category.total_stock_quantity or 0,
+                "average_price": category.average_price or 0,
+            }
+
+        return Response(data=response_obj, status=status.HTTP_200_OK)
+    except Category.DoesNotExist:
+        return Response(data={"error": "Invalid Category"}, status=status.HTTP_400_BAD_REQUEST)
