@@ -1,3 +1,5 @@
+from django.db.models import Count, Q, F
+
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
@@ -56,3 +58,45 @@ def get_or_update_or_delete_supplier(request: Request, id):
             return Response('Supplier deleted successfully', status=status.HTTP_204_NO_CONTENT)
     except Supplier.DoesNotExist:
         return Response(data={"error": 'Invalid Supplier'}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(http_method_names=["GET"])
+def show_supplier_metrics(request: Request):
+    try:
+        response_obj = {
+            "highest_products_suppliers": [],
+	        "lowest_products_suppliers": [],
+            "suppliers": [],
+        }
+
+        products_per_supplier = Supplier.objects.prefetch_related('product_supplier').prefetch_related('product_supplier__category').annotate(total_products=Count("product_supplier__supplier", filter=Q(product_supplier__supplier=F('id')))).order_by('-total_products').all()
+        highest = products_per_supplier[0].total_products
+        lowest = products_per_supplier[len(products_per_supplier) - 1].total_products
+
+        for item in products_per_supplier:
+            if highest == item.total_products:
+                response_obj["highest_products_suppliers"].append(item.id)
+            elif lowest == item.total_products:
+                response_obj["lowest_products_suppliers"].append(item.id)
+
+            supplier_obj = {
+                "id": item.id,
+                "name": item.name,
+                "total_products": item.total_products,
+                "supplied_products_by_categories": {}
+            }
+
+            products_list = item.product_supplier.select_related('category').all()
+            for product_item in products_list:
+                if (supplier_obj["supplied_products_by_categories"].get(product_item.category.name) is None):
+                    supplier_obj["supplied_products_by_categories"][product_item.category.name] = []
+                supplier_obj["supplied_products_by_categories"][product_item.category.name].append({
+                    "id": product_item.id,
+                    "name": product_item.name,
+                    "price": product_item.price,
+                    "quantity": product_item.quantity,
+                    "category_id": product_item.category.id,
+                })
+            response_obj["suppliers"].append(supplier_obj)
+        return Response(data=response_obj, status=status.HTTP_200_OK)
+    except Product.DoesNotExist:
+        return Response(data={"error": "Invalid Product"}, status=status.HTTP_400_BAD_REQUEST)
