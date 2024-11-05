@@ -5,7 +5,7 @@ from rest_framework.request import Request
 from rest_framework.decorators import api_view
 from rest_framework import status
 
-from core.models.product import Product, Category, Supplier
+from core.models.product import Product, Category, Supplier, ProductSupplier
 from core.serializers.product import ProductSerializer as PS
 
 @api_view(['GET', 'POST'])
@@ -24,8 +24,9 @@ def get_or_create_product(request: Request):
             product_obj = product_obj.filter(category_id=category_id)
         if supplier_id is not None:
             product_obj = product_obj.filter(supplier__id=supplier_id)
-
-        serializer = PS(product_obj.all(), many=True)
+        
+        products = product_obj.all()
+        serializer = PS(products, many=True)
 
         return Response(data=serializer.data, status=status.HTTP_200_OK)
     if request.method == 'POST':
@@ -34,15 +35,21 @@ def get_or_create_product(request: Request):
         if serializer.is_valid():
             supplier_ids = serializer.validated_data.pop('supplier_ids')
 
-            supplier_obj = Supplier.objects.filter(id__in=supplier_ids).all()
-            if len(supplier_obj) != len(supplier_ids):
+            suppliers_list = Supplier.objects.filter(id__in=supplier_ids).all()
+            if len(suppliers_list) != len(supplier_ids):
                 return Response(data="One or Supplier IDs are invalid", status=status.HTTP_400_BAD_REQUEST)
+
             category_obj = Category.objects.filter(id=serializer.validated_data.get('category_id')).first()
             if category_obj is None:
                 return Response(data="Invalid Category ID", status=status.HTTP_400_BAD_REQUEST)
 
             product_obj = Product.objects.create(**serializer.validated_data)
-            product_obj.supplier.set(supplier_ids)
+            for supplier in suppliers_list:
+                ProductSupplier.objects.create(
+                    product=product_obj, 
+                    supplier=supplier, 
+                    quantity=serializer.validated_data['quantity']//len(suppliers_list)
+                )
 
             return Response(data="Success", status=status.HTTP_201_CREATED)
         else:
@@ -65,8 +72,8 @@ def get_or_update_or_delete_product(request: Request, id):
             if serializer.is_valid():
                 supplier_ids = serializer.validated_data.pop('supplier_ids')
                          
-                supplier_obj = Supplier.objects.filter(id__in=supplier_ids)
-                if len(supplier_obj) != len(supplier_ids):
+                suppliers_list = Supplier.objects.filter(id__in=supplier_ids)
+                if len(suppliers_list) != len(supplier_ids):
                     return Response(data="One or more of supplier id(s) are invalid", status=status.HTTP_400_BAD_REQUEST)
                 
                 category_obj = Category.objects.filter(id=serializer.validated_data['category_id'])
@@ -77,17 +84,30 @@ def get_or_update_or_delete_product(request: Request, id):
                 for key, value in serializer.validated_data.items():
                     setattr(product, key, value)
                 product.save()
-                product.supplier.set(supplier_ids)
 
-                return Response(data=serializer.validated_data, status=status.HTTP_200_OK)
+                product_suppliers_list = ProductSupplier.objects.filter(product=product).all()
+                product_suppliers_list.delete()
+                for supplier in suppliers_list:
+                    ProductSupplier.objects.create(
+                        product=product, 
+                        supplier=supplier, 
+                        quantity=serializer.validated_data['quantity']//len(suppliers_list)
+                    )
+
+                return Response(data="Product Updated Successfully", status=status.HTTP_200_OK)
             else:
                 return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'DELETE':
+            product_suppliers_list = ProductSupplier.objects.filter(product=product).all()
+            product_suppliers_list.delete()
+
             product.delete()
 
             return Response('Supplier Deleted Successfully', status=status.HTTP_204_NO_CONTENT)
     except Product.DoesNotExist:
         return Response(data={"error": 'Invalid Product'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response(data={"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
          
 @api_view(http_method_names=["GET"])
 def show_product_metrics(request: Request):
