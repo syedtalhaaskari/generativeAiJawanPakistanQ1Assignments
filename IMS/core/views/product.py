@@ -1,4 +1,6 @@
-from django.db.models import Count, Sum, Avg
+from datetime import datetime
+
+from django.db.models import Count, Sum, Avg, F, Q
 
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -6,7 +8,9 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 
 from core.models.product import Product, Category, Supplier, ProductSupplier
+from core.models.product_audit import ProductAudit
 from core.serializers.product import ProductSerializer as PS
+from core.serializers.product_audit import ProductAuditSerializer
 
 @api_view(['GET', 'POST'])
 def get_or_create_product(request: Request):
@@ -50,6 +54,13 @@ def get_or_create_product(request: Request):
                     supplier=supplier, 
                     quantity=serializer.validated_data['quantity']//len(suppliers_list)
                 )
+            audit_obj = request.data
+            audit_obj['product_id'] = product_obj.id
+            audit_obj['created_at'] = product_obj.created_at
+            audit_obj['created_by'] = request.user
+            audit_obj['supplier_ids'] = supplier_ids
+
+            ProductAudit.objects.create(**audit_obj)
 
             return Response(data="Success", status=status.HTTP_201_CREATED)
         else:
@@ -94,12 +105,29 @@ def get_or_update_or_delete_product(request: Request, id):
                         quantity=serializer.validated_data['quantity']//len(suppliers_list)
                     )
 
+                audit_obj = request.data
+                audit_obj['product_id'] = product.id
+                audit_obj['updated_at'] = product.updated_at
+                audit_obj['updated_by'] = request.user
+                audit_obj['supplier_ids'] = supplier_ids
+
+                ProductAudit.objects.create(**audit_obj)
+
                 return Response(data="Product Updated Successfully", status=status.HTTP_200_OK)
             else:
                 return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'DELETE':
             product_suppliers_list = ProductSupplier.objects.filter(product=product).all()
             product_suppliers_list.delete()
+
+            audit_obj = {}
+            audit_obj['product_id'] = product.id
+            audit_obj['deleted_at'] = datetime.now()
+            audit_obj['deleted_by'] = request.user
+
+            print(audit_obj)
+
+            ProductAudit.objects.create(**audit_obj)
 
             product.delete()
 
@@ -115,6 +143,7 @@ def show_product_metrics(request: Request):
         response_obj = {
             "total_products": 0,
             "category": {},
+            "suppliers": [],
         }
         product_obj = Product.objects
         total_products = product_obj.count()
@@ -127,6 +156,8 @@ def show_product_metrics(request: Request):
             average_price=Avg('product_category__price'),
         )
 
+        products_per_supplier = Supplier.objects.prefetch_related('product_supplier').annotate(total_products=Count("product_supplier__supplier", filter=Q(product_supplier__supplier=F('id')))).order_by('-total_products').all()
+
         for category in group_categories:
             response_obj['category'][category.name] = {
                 "id": category.id,
@@ -135,6 +166,37 @@ def show_product_metrics(request: Request):
                 "average_price": category.average_price or 0,
             }
 
+        for item in products_per_supplier:
+            supplier_obj = {
+                "id": item.id,
+                "name": item.name,
+                "total_products": item.total_products
+            }
+
+            response_obj["suppliers"].append(supplier_obj)
+
         return Response(data=response_obj, status=status.HTTP_200_OK)
     except Product.DoesNotExist:
         return Response(data={"error": "Invalid Product"}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+def show_product_audit(request: Request):
+    try:
+        product_audit_obj = ProductAudit.objects.all().order_by('-id')
+
+        serializer = ProductAuditSerializer(product_audit_obj, many=True)
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+    except ProductAudit.DoesNotExist:
+        return Response(data={"error": "Invalid Product Audit"}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+def show_product_audit_by_product_id(request: Request, id: int):
+    try:
+        product_audit_obj = ProductAudit.objects.filter(product_id=id).order_by('-id')
+
+        serializer = ProductAuditSerializer(product_audit_obj, many=True)
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+    except ProductAudit.DoesNotExist:
+        return Response(data={"error": "Invalid Product Audit"}, status=status.HTTP_400_BAD_REQUEST)

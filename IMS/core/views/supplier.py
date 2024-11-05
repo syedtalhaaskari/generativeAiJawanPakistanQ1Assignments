@@ -1,4 +1,4 @@
-from django.db.models import Count, Q, F
+from django.db.models import Count, Q, F, Sum
 
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -68,7 +68,10 @@ def show_supplier_metrics(request: Request):
             "suppliers": [],
         }
 
-        products_per_supplier = Supplier.objects.prefetch_related('product_supplier').prefetch_related('product_supplier__category').annotate(total_products=Count("product_supplier__supplier", filter=Q(product_supplier__supplier=F('id')))).order_by('-total_products').all()
+        products_per_supplier = Supplier.objects.prefetch_related('product_supplier').prefetch_related('product_supplier__category').annotate(
+            total_products=Count("product_supplier__supplier", filter=Q(product_supplier__supplier=F('id'))),
+            total_value=Sum(F('product_supplier__price') * F('product_supplier__quantity'), filter=Q(product_supplier__supplier=F('id')))
+        ).order_by('-total_products').all()
         highest = products_per_supplier[0].total_products
         lowest = products_per_supplier[len(products_per_supplier) - 1].total_products
 
@@ -82,6 +85,7 @@ def show_supplier_metrics(request: Request):
                 "id": item.id,
                 "name": item.name,
                 "total_products": item.total_products,
+                "total_value": item.total_value,
                 "supplied_products_by_categories": {}
             }
 

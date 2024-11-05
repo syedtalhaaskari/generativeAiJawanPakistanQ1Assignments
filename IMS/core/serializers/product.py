@@ -10,6 +10,8 @@ class ProductSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=0)
     category = CategorySerializer(read_only=True)
     category_id = serializers.IntegerField(write_only=True)
+    created_at = serializers.DateTimeField(required=False)
+    updated_at = serializers.DateTimeField(required=False)
 
     supplier = SupplierSerializer(read_only=True, many=True)
     supplier_ids = serializers.ListField(
