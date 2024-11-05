@@ -13,3 +13,7 @@ run command(s)
 > python -m venv venv
 
 > pip install -r requirements.txt
+
+For IMS superuser credentials:
+username: sta
+password: sta
