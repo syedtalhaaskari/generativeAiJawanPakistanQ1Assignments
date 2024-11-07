@@ -1,9 +1,12 @@
 from rest_framework.urls import path
+from rest_framework.routers import DefaultRouter
 
-from .views import login_view, logout_view, create_or_get_users
+from .views import LoginAPIView, LogoutAPIView, UserViewSet
+
+router = DefaultRouter()
+router.register("users", UserViewSet)
 
 urlpatterns = [
-    path('users/', create_or_get_users, name="create_or_get_users"),
-    path('login/', login_view, name="login"),
-    path('logout/', logout_view, name="logout"),
-]
+    path('login/', LoginAPIView.as_view(), name="login"),
+    path('logout/', LogoutAPIView.as_view(), name="logout"),
+] + router.urls
