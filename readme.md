@@ -14,6 +14,15 @@ run command(s)
 
 > pip install -r requirements.txt
 
+In terminal inside blogging_app folder
+> python manage.py makemigrations
+> python manage.py migrate
+> python manage.py create_groups
+
 For IMS superuser credentials:
 username: sta
 password: sta
+
+all created users have same username and password
+- syed
+- nonAdmin

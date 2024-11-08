@@ -6,4 +6,4 @@ class CoreConfig(AppConfig):
     name = 'core'
 
     def ready(self):
-        from .models import category, product, supplier
+        from .models import category, comment, like, post
